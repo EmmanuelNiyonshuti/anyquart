@@ -5,13 +5,13 @@ import time
 
 import pytest
 
-from quart import current_app
-from quart import Quart
+from anyquart import AnyQuart
+from anyquart import current_app
 
 
 @pytest.mark.anyio
 async def test_background_task() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.config["DATA"] = "data"
 
     data = None
@@ -35,7 +35,7 @@ async def test_background_task() -> None:
 
 @pytest.mark.anyio
 async def test_lifespan_background_task() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.config["DATA"] = "data"
 
     data = None
@@ -57,7 +57,7 @@ async def test_lifespan_background_task() -> None:
 
 @pytest.mark.anyio
 async def test_sync_background_task() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.config["DATA"] = "data"
 
     data = None

@@ -11,20 +11,20 @@ from hypercorn.typing import HTTPScope
 from hypercorn.typing import WebsocketScope
 from werkzeug.datastructures import Headers
 
-from quart import Quart
-from quart.asgi import _convert_version
-from quart.asgi import _handle_exception
-from quart.asgi import ASGIHTTPConnection
-from quart.asgi import ASGIWebsocketConnection
-from quart.utils import encode_headers
+from anyquart import AnyQuart
+from anyquart.asgi import _convert_version
+from anyquart.asgi import _handle_exception
+from anyquart.asgi import ASGIHTTPConnection
+from anyquart.asgi import ASGIWebsocketConnection
+from anyquart.utils import encode_headers
 
 
 @pytest.mark.parametrize(
-    "headers, expected", [([(b"host", b"quart")], "quart"), ([], "")]
+    "headers, expected", [([(b"host", b"anyquart")], "anyquart"), ([], "")]
 )
 @pytest.mark.anyio
 async def test_http_1_0_host_header(headers: list, expected: str) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     scope: HTTPScope = {
         "type": "http",
         "asgi": {},
@@ -49,7 +49,7 @@ async def test_http_1_0_host_header(headers: list, expected: str) -> None:
 @pytest.mark.anyio
 async def test_http_completion() -> None:
     # Ensure that the connecion callable returns on completion
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     scope: HTTPScope = {
         "type": "http",
         "asgi": {},
@@ -60,7 +60,7 @@ async def test_http_completion() -> None:
         "raw_path": b"/",
         "query_string": b"",
         "root_path": "",
-        "headers": [(b"host", b"quart")],
+        "headers": [(b"host", b"anyquart")],
         "client": ("127.0.0.1", 80),
         "server": None,
         "extensions": {},
@@ -91,7 +91,7 @@ async def test_http_completion() -> None:
 )
 @pytest.mark.anyio
 async def test_http_request_without_body(request_message: dict) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     scope: HTTPScope = {
         "type": "http",
@@ -103,7 +103,7 @@ async def test_http_request_without_body(request_message: dict) -> None:
         "raw_path": b"/",
         "query_string": b"",
         "root_path": "",
-        "headers": [(b"host", b"quart")],
+        "headers": [(b"host", b"anyquart")],
         "client": ("127.0.0.1", 80),
         "server": None,
         "extensions": {},
@@ -131,7 +131,7 @@ async def test_http_request_without_body(request_message: dict) -> None:
 @pytest.mark.anyio
 async def test_websocket_completion() -> None:
     # Ensure that the connecion callable returns on completion
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     scope: WebsocketScope = {
         "type": "websocket",
         "asgi": {},
@@ -141,7 +141,7 @@ async def test_websocket_completion() -> None:
         "raw_path": b"/",
         "query_string": b"",
         "root_path": "",
-        "headers": [(b"host", b"quart")],
+        "headers": [(b"host", b"anyquart")],
         "client": ("127.0.0.1", 80),
         "server": None,
         "subprotocols": [],
@@ -165,18 +165,18 @@ async def test_websocket_completion() -> None:
 
 
 def test_http_path_from_absolute_target() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     scope: HTTPScope = {
         "type": "http",
         "asgi": {},
         "http_version": "1.1",
         "method": "GET",
         "scheme": "https",
-        "path": "http://quart/path",
+        "path": "http://anyquart/path",
         "raw_path": b"/",
         "query_string": b"",
         "root_path": "",
-        "headers": [(b"host", b"quart")],
+        "headers": [(b"host", b"anyquart")],
         "client": ("127.0.0.1", 80),
         "server": None,
         "extensions": {},
@@ -192,7 +192,7 @@ def test_http_path_from_absolute_target() -> None:
     [("/app", "/ "), ("/", "/ "), ("/app/", "/"), ("/app/2", "/2")],
 )
 def test_http_path_with_root_path(path: str, expected: str) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     scope: HTTPScope = {
         "type": "http",
         "asgi": {},
@@ -203,7 +203,7 @@ def test_http_path_with_root_path(path: str, expected: str) -> None:
         "raw_path": b"/",
         "query_string": b"",
         "root_path": "/app",
-        "headers": [(b"host", b"quart")],
+        "headers": [(b"host", b"anyquart")],
         "client": ("127.0.0.1", 80),
         "server": None,
         "extensions": {},
@@ -215,17 +215,17 @@ def test_http_path_with_root_path(path: str, expected: str) -> None:
 
 
 def test_websocket_path_from_absolute_target() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     scope: WebsocketScope = {
         "type": "websocket",
         "asgi": {},
         "http_version": "1.1",
         "scheme": "wss",
-        "path": "ws://quart/path",
+        "path": "ws://anyquart/path",
         "raw_path": b"/",
         "query_string": b"",
         "root_path": "",
-        "headers": [(b"host", b"quart")],
+        "headers": [(b"host", b"anyquart")],
         "client": ("127.0.0.1", 80),
         "server": None,
         "subprotocols": [],
@@ -242,7 +242,7 @@ def test_websocket_path_from_absolute_target() -> None:
     [("/app", "/ "), ("/", "/ "), ("/app/", "/"), ("/app/2", "/2")],
 )
 def test_websocket_path_with_root_path(path: str, expected: str) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     scope: WebsocketScope = {
         "type": "websocket",
         "asgi": {},
@@ -252,7 +252,7 @@ def test_websocket_path_with_root_path(path: str, expected: str) -> None:
         "raw_path": b"/",
         "query_string": b"",
         "root_path": "/app",
-        "headers": [(b"host", b"quart")],
+        "headers": [(b"host", b"anyquart")],
         "client": ("127.0.0.1", 80),
         "server": None,
         "subprotocols": [],
@@ -277,7 +277,7 @@ def test_websocket_path_with_root_path(path: str, expected: str) -> None:
 async def test_websocket_accept_connection(
     scope: dict, headers: Headers, subprotocol: str | None, has_headers: bool
 ) -> None:
-    connection = ASGIWebsocketConnection(Quart(__name__), scope)  # type: ignore
+    connection = ASGIWebsocketConnection(AnyQuart, scope)  # type: ignore
     mock_send = AsyncMock()
     await connection.accept_connection(mock_send, headers, subprotocol)
 
@@ -299,7 +299,7 @@ async def test_websocket_accept_connection(
 async def test_websocket_accept_connection_warns(
     websocket_scope: WebsocketScope,
 ) -> None:
-    connection = ASGIWebsocketConnection(Quart(__name__), websocket_scope)
+    connection = ASGIWebsocketConnection(AnyQuart, websocket_scope)
 
     async def mock_send(message: ASGISendEvent) -> None:
         pass
@@ -313,9 +313,9 @@ def test__convert_version() -> None:
 
 
 def test_http_asgi_scope_from_request() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     scope = {
-        "headers": [(b"host", b"quart")],
+        "headers": [(b"host", b"anyquart")],
         "http_version": "1.0",
         "method": "GET",
         "scheme": "https",

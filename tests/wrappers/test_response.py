@@ -9,19 +9,18 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from anyquart.testing import no_op_push
+from anyquart.typing import HTTPScope
+from anyquart.wrappers import Request
+from anyquart.wrappers.response import DataBody
+from anyquart.wrappers.response import FileBody
+from anyquart.wrappers.response import IOBody
+from anyquart.wrappers.response import IterableBody
+from anyquart.wrappers.response import Response
 from hypothesis import given
 from hypothesis import strategies as strategies
 from werkzeug.datastructures import Headers
 from werkzeug.exceptions import RequestedRangeNotSatisfiable
-
-from quart.testing import no_op_push
-from quart.typing import HTTPScope
-from quart.wrappers import Request
-from quart.wrappers.response import DataBody
-from quart.wrappers.response import FileBody
-from quart.wrappers.response import IOBody
-from quart.wrappers.response import IterableBody
-from quart.wrappers.response import Response
 
 
 @pytest.mark.anyio

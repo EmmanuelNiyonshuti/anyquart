@@ -15,7 +15,7 @@ from queue import SimpleQueue as Queue
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .app import Quart  # noqa
+    from .app import AnyQuart  # noqa
 
 default_handler = StreamHandler(sys.stderr)
 default_handler.setFormatter(
@@ -62,10 +62,10 @@ def has_level_handler(logger: Logger) -> bool:
     return False
 
 
-def create_logger(app: Quart) -> Logger:
+def create_logger(app: AnyQuart) -> Logger:
     """Create a logger for the app based on the app settings.
 
-    This creates a logger named quart.app that has a log level based
+    This creates a logger named anyquart.app that has a log level based
     on the app configuration.
     """
     logger = getLogger(app.name)

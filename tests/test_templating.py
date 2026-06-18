@@ -3,20 +3,19 @@ from __future__ import annotations
 import asyncio
 
 import pytest
-
-from quart import Blueprint
-from quart import g
-from quart import Quart
-from quart import render_template_string
-from quart import Response
-from quart import ResponseReturnValue
-from quart import session
-from quart import stream_template_string
+from anyquart import AnyQuart
+from anyquart import Blueprint
+from anyquart import g
+from anyquart import render_template_string
+from anyquart import Response
+from anyquart import ResponseReturnValue
+from anyquart import session
+from anyquart import stream_template_string
 
 
 @pytest.fixture(scope="function")
-def app() -> Quart:
-    app = Quart(__name__)
+def app() -> AnyQuart:
+    app = AnyQuart(__name__)
     app.secret_key = "secret"
 
     return app
@@ -34,14 +33,14 @@ def blueprint() -> Blueprint:
 
 
 @pytest.mark.anyio
-async def test_template_render(app: Quart) -> None:
+async def test_template_render(app: AnyQuart) -> None:
     async with app.app_context():
         rendered = await render_template_string("{{ foo }}", foo="bar")
     assert rendered == "bar"
 
 
 @pytest.mark.anyio
-async def test_default_template_context(app: Quart) -> None:
+async def test_default_template_context(app: AnyQuart) -> None:
     async with app.app_context():
         g.foo = "bar"
         rendered = await render_template_string("{{ g.foo }}")
@@ -55,7 +54,7 @@ async def test_default_template_context(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_template_context_processors(app: Quart, blueprint: Blueprint) -> None:
+async def test_template_context_processors(app: AnyQuart, blueprint: Blueprint) -> None:
     @blueprint.context_processor
     async def blueprint_context() -> dict:
         await asyncio.sleep(0.01)  # Test the ability to await
@@ -85,7 +84,7 @@ async def test_template_context_processors(app: Quart, blueprint: Blueprint) -> 
 
 
 @pytest.mark.anyio
-async def test_template_globals(app: Quart, blueprint: Blueprint) -> None:
+async def test_template_globals(app: AnyQuart, blueprint: Blueprint) -> None:
     @blueprint.app_template_global()
     def blueprint_global(value: str) -> str:
         return value.upper()
@@ -104,7 +103,7 @@ async def test_template_globals(app: Quart, blueprint: Blueprint) -> None:
 
 
 @pytest.mark.anyio
-async def test_template_filters(app: Quart, blueprint: Blueprint) -> None:
+async def test_template_filters(app: AnyQuart, blueprint: Blueprint) -> None:
     @blueprint.app_template_filter()
     def blueprint_filter(value: str) -> str:
         return value.upper()
@@ -125,7 +124,7 @@ async def test_template_filters(app: Quart, blueprint: Blueprint) -> None:
 
 
 @pytest.mark.anyio
-async def test_template_tests(app: Quart, blueprint: Blueprint) -> None:
+async def test_template_tests(app: AnyQuart, blueprint: Blueprint) -> None:
     @blueprint.app_template_test()
     def blueprint_test(value: int) -> bool:
         return value == 5
@@ -148,7 +147,7 @@ async def test_template_tests(app: Quart, blueprint: Blueprint) -> None:
 
 
 @pytest.mark.anyio
-async def test_simple_stream(app: Quart) -> None:
+async def test_simple_stream(app: AnyQuart) -> None:
     @app.get("/")
     async def index() -> ResponseReturnValue:
         return await stream_template_string("{{ config }}", config=42)  # type: ignore

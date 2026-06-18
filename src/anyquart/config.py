@@ -10,11 +10,11 @@ from flask.config import ConfigAttribute as ConfigAttribute  # noqa: F401
 
 class Config(FlaskConfig):
     def from_prefixed_env(
-        self, prefix: str = "QUART", *, loads: Callable[[str], Any] = json.loads
+        self, prefix: str = "anyquart", *, loads: Callable[[str], Any] = json.loads
     ) -> bool:
         """Load any environment variables that start with the prefix.
 
-        The prefix (default ``QUART_``) is dropped from the env key
+        The prefix (default ``anyquart_``) is dropped from the env key
         for the config key. Values are passed through a loading
         function to attempt to convert them to more specific types
         than strings.

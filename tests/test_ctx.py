@@ -9,29 +9,29 @@ from hypercorn.typing import HTTPScope
 from werkzeug.datastructures import Headers
 from werkzeug.exceptions import BadRequest
 
-from quart.app import Quart
-from quart.ctx import after_this_request
-from quart.ctx import AppContext
-from quart.ctx import copy_current_app_context
-from quart.ctx import copy_current_request_context
-from quart.ctx import copy_current_websocket_context
-from quart.ctx import has_app_context
-from quart.ctx import has_request_context
-from quart.ctx import RequestContext
-from quart.globals import g
-from quart.globals import request
-from quart.globals import websocket
-from quart.routing import QuartRule
-from quart.testing import make_test_headers_path_and_query_string
-from quart.testing import no_op_push
-from quart.wrappers import Request
+from anyquart.app import AnyQuart
+from anyquart.ctx import after_this_request
+from anyquart.ctx import AppContext
+from anyquart.ctx import copy_current_app_context
+from anyquart.ctx import copy_current_request_context
+from anyquart.ctx import copy_current_websocket_context
+from anyquart.ctx import has_app_context
+from anyquart.ctx import has_request_context
+from anyquart.ctx import RequestContext
+from anyquart.globals import g
+from anyquart.globals import request
+from anyquart.globals import websocket
+from anyquart.routing import AnyQuartRule
+from anyquart.testing import make_test_headers_path_and_query_string
+from anyquart.testing import no_op_push
+from anyquart.wrappers import Request
 
 
 @pytest.mark.anyio
 async def test_request_context_match(http_scope: HTTPScope) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     url_adapter = Mock()
-    rule = QuartRule("/", methods={"GET"}, endpoint="index")
+    rule = AnyQuartRule("/", methods={"GET"}, endpoint="index")
     url_adapter.match.return_value = (rule, {"arg": "value"})
     app.create_url_adapter = lambda *_: url_adapter  # type: ignore
     request = Request(
@@ -39,7 +39,7 @@ async def test_request_context_match(http_scope: HTTPScope) -> None:
         "http",
         "/",
         b"",
-        Headers([("host", "quart.com")]),
+        Headers([("host", "anyquart.com")]),
         "",
         "1.1",
         http_scope,
@@ -52,7 +52,7 @@ async def test_request_context_match(http_scope: HTTPScope) -> None:
 
 @pytest.mark.anyio
 async def test_bad_request_if_websocket_route(http_scope: HTTPScope) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     url_adapter = Mock()
     url_adapter.match.side_effect = BadRequest()
     app.create_url_adapter = lambda *_: url_adapter  # type: ignore
@@ -61,7 +61,7 @@ async def test_bad_request_if_websocket_route(http_scope: HTTPScope) -> None:
         "http",
         "/",
         b"",
-        Headers([("host", "quart.com")]),
+        Headers([("host", "anyquart.com")]),
         "",
         "1.1",
         http_scope,
@@ -73,10 +73,10 @@ async def test_bad_request_if_websocket_route(http_scope: HTTPScope) -> None:
 
 @pytest.mark.anyio
 async def test_after_this_request(http_scope: HTTPScope) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     headers, path, query_string = make_test_headers_path_and_query_string(app, "/")
     async with RequestContext(
-        Quart(__name__),
+        AnyQuart(__name__),
         Request(
             "GET",
             "http",
@@ -95,7 +95,7 @@ async def test_after_this_request(http_scope: HTTPScope) -> None:
 
 @pytest.mark.anyio
 async def test_has_request_context(http_scope: HTTPScope) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     headers, path, query_string = make_test_headers_path_and_query_string(app, "/")
     request = Request(
         "GET",
@@ -108,7 +108,7 @@ async def test_has_request_context(http_scope: HTTPScope) -> None:
         http_scope,
         send_push_promise=no_op_push,
     )
-    async with RequestContext(Quart(__name__), request):
+    async with RequestContext(AnyQuart(__name__), request):
         assert has_request_context() is True
         assert has_app_context() is True
     assert has_request_context() is False
@@ -117,14 +117,14 @@ async def test_has_request_context(http_scope: HTTPScope) -> None:
 
 @pytest.mark.anyio
 async def test_has_app_context() -> None:
-    async with AppContext(Quart(__name__)):
+    async with AppContext(AnyQuart(__name__)):
         assert has_app_context() is True
     assert has_app_context() is False
 
 
 @pytest.mark.anyio
 async def test_copy_current_app_context() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/")
     async def index() -> str:
@@ -149,7 +149,7 @@ def test_copy_current_app_context_error() -> None:
 
 @pytest.mark.anyio
 async def test_copy_current_request_context() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/")
     async def index() -> str:
@@ -172,7 +172,7 @@ def test_copy_current_request_context_error() -> None:
 
 @pytest.mark.anyio
 async def test_works_without_copy_current_request_context() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/")
     async def index() -> str:
@@ -189,7 +189,7 @@ async def test_works_without_copy_current_request_context() -> None:
 
 @pytest.mark.anyio
 async def test_copy_current_websocket_context() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.websocket("/")
     async def index() -> None:

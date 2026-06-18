@@ -25,7 +25,7 @@ from .wrappers import Request
 from .wrappers import Websocket
 
 if TYPE_CHECKING:
-    from .app import Quart  # noqa
+    from .app import AnyQuart  # noqa
 
 _sentinel = object()
 
@@ -43,7 +43,7 @@ class _BaseRequestWebsocketContext:
 
     def __init__(
         self,
-        app: Quart,
+        app: AnyQuart,
         request_websocket: BaseRequestWebsocket,
         session: SessionMixin | None = None,
     ) -> None:
@@ -83,7 +83,7 @@ class _BaseRequestWebsocketContext:
         raise NotImplementedError()
 
     async def auto_pop(self, exc: BaseException | None) -> None:
-        if self.request_websocket.scope.get("_quart._preserve_context", False) or (
+        if self.request_websocket.scope.get("_anyquart._preserve_context", False) or (
             exc is not None and self.app.config["PRESERVE_CONTEXT_ON_EXCEPTION"]
         ):
             self.preserved = True
@@ -127,8 +127,8 @@ class RequestContext(_BaseRequestWebsocketContext):
     """The context relating to the specific request, bound to the current task.
 
     Do not use directly, prefer the
-    :func:`~quart.Quart.request_context` or
-    :func:`~quart.Quart.test_request_context` instead.
+    :func:`~anyquart.anyquart.request_context` or
+    :func:`~anyquart.anyquart.test_request_context` instead.
 
     Attributes:
         _after_request_functions: List of functions to execute after the current
@@ -137,7 +137,7 @@ class RequestContext(_BaseRequestWebsocketContext):
 
     def __init__(
         self,
-        app: Quart,
+        app: AnyQuart,
         request: Request,
         session: SessionMixin | None = None,
     ) -> None:
@@ -185,8 +185,8 @@ class WebsocketContext(_BaseRequestWebsocketContext):
     """The context relating to the specific websocket, bound to the current task.
 
     Do not use directly, prefer the
-    :func:`~quart.Quart.websocket_context` or
-    :func:`~quart.Quart.test_websocket_context` instead.
+    :func:`~anyquart.anyquart.websocket_context` or
+    :func:`~anyquart.anyquart.test_websocket_context` instead.
 
     Attributes:
         _after_websocket_functions: List of functions to execute after the current
@@ -195,7 +195,7 @@ class WebsocketContext(_BaseRequestWebsocketContext):
 
     def __init__(
         self,
-        app: Quart,
+        app: AnyQuart,
         request: Websocket,
         session: SessionMixin | None = None,
     ) -> None:
@@ -238,7 +238,7 @@ class AppContext:
     """The context relating to the app bound to the current task.
 
     Do not use directly, prefer the
-    :func:`~quart.Quart.app_context` instead.
+    :func:`~anyquart.anyquart.app_context` instead.
 
     Attributes:
         app: The app itself.
@@ -247,7 +247,7 @@ class AppContext:
         g: An instance of the ctx globals class.
     """
 
-    def __init__(self, app: Quart) -> None:
+    def __init__(self, app: AnyQuart) -> None:
         self.app = app
         self.url_adapter = app.create_url_adapter(None)
         self.g = app.app_ctx_globals_class()

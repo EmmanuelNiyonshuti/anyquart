@@ -70,8 +70,8 @@ from .globals import websocket_ctx
 from .helpers import get_debug_flag
 from .helpers import get_flashed_messages
 from .helpers import send_from_directory
-from .routing import QuartMap
-from .routing import QuartRule
+from .routing import AnyQuartMap
+from .routing import AnyQuartRule
 from .sessions import SecureCookieSessionInterface
 from .signals import appcontext_tearing_down
 from .signals import got_background_exception
@@ -86,12 +86,12 @@ from .signals import websocket_started
 from .signals import websocket_tearing_down
 from .templating import _default_template_ctx_processor
 from .templating import Environment
+from .testing import AnyQuartClient
+from .testing import AnyQuartCliRunner
 from .testing import make_test_body_with_headers
 from .testing import make_test_headers_path_and_query_string
 from .testing import make_test_scope
 from .testing import no_op_push
-from .testing import QuartClient
-from .testing import QuartCliRunner
 from .testing import sentinel
 from .testing import TestApp
 from .typing import AfterServingCallable
@@ -136,7 +136,7 @@ if sys.version_info >= (3, 12):
 else:
     iscoroutinefunction = asyncio.iscoroutinefunction
 
-AppOrBlueprintKey = Optional[str]  # The App key is None, whereas blueprints are named
+AppOrBlueprintKey = str | None  # The App key is None, whereas blueprints are named
 T_after_serving = TypeVar("T_after_serving", bound=AfterServingCallable)
 T_after_websocket = TypeVar("T_after_websocket", bound=AfterWebsocketCallable)
 T_before_serving = TypeVar("T_before_serving", bound=BeforeServingCallable)
@@ -162,11 +162,11 @@ def _make_timedelta(value: timedelta | int | None) -> timedelta | None:
     return timedelta(seconds=value)
 
 
-class Quart(App):
+class AnyQuart(App):
     """The web framework class, handles requests and returns responses.
 
     The primary method from a serving viewpoint is
-    :meth:`~quart.app.Quart.handle_request`, from an application
+    :meth:`~anyquart.app.anyquart.handle_request`, from an application
     viewpoint all the other methods are vital.
 
     This can be extended in many ways, with most methods designed with
@@ -229,10 +229,10 @@ class Quart(App):
     response_class = Response
     session_interface = SecureCookieSessionInterface()
     test_app_class = TestApp
-    test_client_class = QuartClient  # type: ignore[assignment]
-    test_cli_runner_class = QuartCliRunner  # type: ignore
-    url_map_class = QuartMap
-    url_rule_class = QuartRule  # type: ignore[assignment]
+    test_client_class = AnyQuartClient  # type: ignore[assignment]
+    test_cli_runner_class = AnyQuartCliRunner  # type: ignore
+    url_map_class = AnyQuartMap
+    url_rule_class = AnyQuartRule  # type: ignore[assignment]
     websocket_class = Websocket
 
     default_config = ImmutableDict(
@@ -286,11 +286,11 @@ class Quart(App):
         instance_relative_config: bool = False,
         root_path: str | None = None,
     ) -> None:
-        """Construct a Quart web application.
+        """Construct AnyQuart  web application.
 
         Use to create a new web application to which requests should
         be handled, as specified by the various attached url
-        rules. See also :class:`~quart.static.PackageStatic` for
+        rules. See also :class:`~anyquart.static.PackageStatic` for
         additional constructor arguments.
 
         Arguments:
@@ -366,7 +366,7 @@ class Quart(App):
         to ``None``, which tells the browser to use conditional requests
         instead of a timed cache, which is usually preferable.
 
-        Note this is a duplicate of the same method in the Quart
+        Note this is a duplicate of the same method in the anyquart
         class.
 
         """
@@ -424,7 +424,7 @@ class Quart(App):
 
         This will create the environment based on the
         :attr:`jinja_options` and configuration settings. The
-        environment will include the Quart globals by default.
+        environment will include the anyquart globals by default.
         """
         options = dict(self.jinja_options)
         if "autoescape" not in options:
@@ -481,7 +481,7 @@ class Quart(App):
 
         This is designed to be used as a decorator, if used to
         decorate a synchronous function, the function will be wrapped
-        in :func:`~quart.utils.run_sync` and run in a thread executor
+        in :func:`~anyquart.utils.run_sync` and run in a thread executor
         (with the wrapped function returned). An example usage,
 
         .. code-block:: python
@@ -535,7 +535,7 @@ class Quart(App):
 
         This is designed to be used as a decorator, if used to
         decorate a synchronous function, the function will be wrapped
-        in :func:`~quart.utils.run_sync` and run in a thread executor
+        in :func:`~anyquart.utils.run_sync` and run in a thread executor
         (with the wrapped function returned). An example usage,
 
         .. code-block:: python
@@ -583,7 +583,7 @@ class Quart(App):
 
         This is designed to be used as a decorator, if used to
         decorate a synchronous function, the function will be wrapped
-        in :func:`~quart.utils.run_sync` and run in a thread executor
+        in :func:`~anyquart.utils.run_sync` and run in a thread executor
         (with the wrapped function returned). An example usage,
 
         .. code-block:: python
@@ -807,7 +807,7 @@ class Quart(App):
         if kwargs:
             warnings.warn(
                 f"Additional arguments, {','.join(kwargs.keys())}, are not supported.\n"
-                "They may be supported by Hypercorn, which is the ASGI server Quart "
+                "They may be supported by Hypercorn, which is the ASGI server anyquart "
                 "uses by default. This method is meant for development and debugging.",
                 stacklevel=2,
             )
@@ -816,7 +816,7 @@ class Quart(App):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
-        if "QUART_DEBUG" in os.environ:
+        if "anyquart_DEBUG" in os.environ:
             self.debug = get_debug_flag()
 
         if debug is not None:
@@ -860,7 +860,7 @@ class Quart(App):
             keyfile,
             shutdown_trigger=shutdown_event.wait,  # type: ignore
         )
-        print(f" * Serving Quart app '{self.name}'")  # noqa: T201
+        print(f" * Serving AnyQuart app '{self.name}'")  # noqa: T201
         print(f" * Debug mode: {self.debug or False}")  # noqa: T201
         print(" * Please use an ASGI server (e.g. Hypercorn) directly in production")  # noqa: T201
         scheme = "https" if certfile is not None and keyfile is not None else "http"
@@ -933,7 +933,7 @@ class Quart(App):
         """Creates and returns a test client."""
         return self.test_client_class(self, use_cookies=use_cookies, **kwargs)
 
-    def test_cli_runner(self, **kwargs: Any) -> QuartCliRunner:
+    def test_cli_runner(self, **kwargs: Any) -> AnyQuartCliRunner:
         """Creates and returns a CLI test runner."""
         return self.test_cli_runner_class(self, **kwargs)
 
@@ -946,7 +946,7 @@ class Quart(App):
 
         This is designed to be used as a decorator, if used to
         decorate a synchronous function, the function will be wrapped
-        in :func:`~quart.utils.run_sync` and run in a thread executor
+        in :func:`~anyquart.utils.run_sync` and run in a thread executor
         (with the wrapped function returned). An example usage,
 
         .. code-block:: python
@@ -970,7 +970,7 @@ class Quart(App):
 
         This is designed to be used as a decorator, if used to
         decorate a synchronous function, the function will be wrapped
-        in :func:`~quart.utils.run_sync` and run in a thread executor
+        in :func:`~anyquart.utils.run_sync` and run in a thread executor
         (with the wrapped function returned). An example usage,
 
         .. code-block:: python
@@ -993,7 +993,7 @@ class Quart(App):
         """Add a teardown websocket function.
         This is designed to be used as a decorator, if used to
         decorate a synchronous function, the function will be wrapped
-        in :func:`~quart.utils.run_sync` and run in a thread executor
+        in :func:`~anyquart.utils.run_sync` and run in a thread executor
         (with the wrapped function returned). An example usage,
         .. code-block:: python
             @app.teardown_websocket
@@ -1036,7 +1036,7 @@ class Quart(App):
     ) -> HTTPException | ResponseReturnValue:
         """Handle an exception that has been raised.
 
-        This should forward :class:`~quart.exception.HTTPException` to
+        This should forward :class:`~anyquart.exception.HTTPException` to
         :meth:`handle_http_exception`, then attempt to handle the
         error. If it cannot it should reraise the error.
         """
@@ -1170,7 +1170,7 @@ class Quart(App):
         .. versionadded:: 0.11
 
         Override if you wish to change how synchronous functions are
-        run. Before Quart 0.11 this did not run the synchronous code
+        run. Before anyquart 0.11 this did not run the synchronous code
         in an executor.
         """
         if iscoroutinefunction(func):
@@ -1467,7 +1467,7 @@ class Quart(App):
             except Exception as error:
                 return await self.handle_exception(error)
             finally:
-                if request.scope.get("_quart._preserve_context", False):
+                if request.scope.get("_anyquart._preserve_context", False):
                     self._preserved_context = request_context.copy()
 
     async def handle_websocket(self, websocket: Websocket) -> ResponseTypes | None:
@@ -1479,7 +1479,7 @@ class Quart(App):
             except Exception as error:
                 return await self.handle_websocket_exception(error)
             finally:
-                if websocket.scope.get("_quart._preserve_context", False):
+                if websocket.scope.get("_anyquart._preserve_context", False):
                     self._preserved_context = websocket_context.copy()
 
     async def full_dispatch_request(
@@ -1728,9 +1728,9 @@ class Quart(App):
     ) -> None:
         """Called by ASGI servers.
 
-        The related :meth:`~quart.app.Quart.asgi_app` is called,
+        The related :meth:`~anyquart.app.anyquart.asgi_app` is called,
         allowing for middleware usage whilst keeping the top level app
-        a :class:`~quart.app.Quart` instance.
+        a :class:`~anyquart.app.anyquart` instance.
         """
         await self.asgi_app(scope, receive, send)
 
@@ -1739,9 +1739,9 @@ class Quart(App):
     ) -> None:
         """This handles ASGI calls, it can be wrapped in middleware.
 
-        When using middleware with Quart it is preferable to wrap this
+        When using middleware with anyquart it is preferable to wrap this
         method rather than the app itself. This is to ensure that the
-        app is an instance of this class - which allows the quart cli
+        app is an instance of this class - which allows the anyquart cli
         to work correctly. To use this feature simply do,
 
         .. code-block:: python

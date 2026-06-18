@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from werkzeug.datastructures import Authorization  # noqa: F401
     from werkzeug.datastructures import Headers  # noqa: F401
 
-    from .app import Quart
+    from .app import AnyQuart
     from .sessions import SessionMixin
     from .wrappers.response import Response  # noqa: F401
 
@@ -116,7 +116,7 @@ WebsocketCallable = (
 
 
 class ASGIHTTPProtocol(Protocol):
-    def __init__(self, app: Quart, scope: HTTPScope) -> None: ...
+    def __init__(self, app: AnyQuart, scope: HTTPScope) -> None: ...
 
     async def __call__(
         self, receive: ASGIReceiveCallable, send: ASGISendCallable
@@ -124,7 +124,7 @@ class ASGIHTTPProtocol(Protocol):
 
 
 class ASGILifespanProtocol(Protocol):
-    def __init__(self, app: Quart, scope: LifespanScope) -> None: ...
+    def __init__(self, app: AnyQuart, scope: LifespanScope) -> None: ...
 
     async def __call__(
         self, receive: ASGIReceiveCallable, send: ASGISendCallable
@@ -132,7 +132,7 @@ class ASGILifespanProtocol(Protocol):
 
 
 class ASGIWebsocketProtocol(Protocol):
-    def __init__(self, app: Quart, scope: WebsocketScope) -> None: ...
+    def __init__(self, app: AnyQuart, scope: WebsocketScope) -> None: ...
 
     async def __call__(
         self, receive: ASGIReceiveCallable, send: ASGISendCallable
@@ -143,7 +143,7 @@ class TestHTTPConnectionProtocol(Protocol):
     push_promises: list[tuple[str, Headers]]
 
     def __init__(
-        self, app: Quart, scope: HTTPScope, _preserve_context: bool = False
+        self, app: AnyQuart, scope: HTTPScope, _preserve_context: bool = False
     ) -> None: ...
 
     async def send(self, data: bytes) -> None: ...
@@ -164,7 +164,7 @@ class TestHTTPConnectionProtocol(Protocol):
 
 
 class TestWebsocketConnectionProtocol(Protocol):
-    def __init__(self, app: Quart, scope: WebsocketScope) -> None: ...
+    def __init__(self, app: AnyQuart, scope: WebsocketScope) -> None: ...
 
     async def __aenter__(self) -> TestWebsocketConnectionProtocol: ...
 
@@ -186,13 +186,13 @@ class TestWebsocketConnectionProtocol(Protocol):
 
 
 class TestClientProtocol(Protocol):
-    app: Quart
+    app: AnyQuart
     cookie_jar: CookieJar | None
     http_connection_class: type[TestHTTPConnectionProtocol]
     push_promises: list[tuple[str, Headers]]
     websocket_connection_class: type[TestWebsocketConnectionProtocol]
 
-    def __init__(self, app: Quart, use_cookies: bool = True) -> None: ...
+    def __init__(self, app: AnyQuart, use_cookies: bool = True) -> None: ...
 
     async def open(
         self,
@@ -302,7 +302,7 @@ class TestClientProtocol(Protocol):
 
 
 class TestAppProtocol(Protocol):
-    def __init__(self, app: Quart) -> None: ...
+    def __init__(self, app: AnyQuart) -> None: ...
 
     def test_client(self) -> TestClientProtocol: ...
 

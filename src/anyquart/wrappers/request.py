@@ -130,7 +130,7 @@ class Request(BaseRequestWebsocket):
     """This class represents a request.
 
     It can be subclassed and the subclassed used in preference by
-    replacing the :attr:`~quart.Quart.request_class` with your
+    replacing the :attr:`~anyquart.anyquart.request_class` with your
     subclass.
 
     Attributes:
@@ -175,7 +175,7 @@ class Request(BaseRequestWebsocket):
             body: An awaitable future for the body data i.e.
                 ``data = await body``
             max_content_length: The maximum length in bytes of the
-                body (None implies no limit in Quart).
+                body (None implies no limit in anyquart).
             body_timeout: The maximum time (seconds) to wait for the
                 body before timing out.
             send_push_promise: An awaitable to send a push promise based

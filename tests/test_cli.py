@@ -10,26 +10,26 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from click.testing import CliRunner
 
-import quart.cli
-from quart.app import Quart
-from quart.cli import AppGroup
-from quart.cli import cli
-from quart.cli import load_dotenv
-from quart.cli import ScriptInfo
+import anyquart.cli
+from anyquart import AnyQuart
+from anyquart.cli import AppGroup
+from anyquart.cli import cli
+from anyquart.cli import load_dotenv
+from anyquart.cli import ScriptInfo
 
 
 @pytest.fixture(scope="module")
 def reset_env() -> None:
-    os.environ.pop("QUART_DEBUG", None)
+    os.environ.pop("AnyQuart_DEBUG", None)
 
 
 @pytest.fixture(name="app")
 def loadable_app(monkeypatch: MonkeyPatch) -> Mock:
-    app = Mock(spec=Quart)
+    app = Mock(spec=AnyQuart)
     app.cli = AppGroup()
     module = Mock()
     module.app = app
-    monkeypatch.setattr(quart.cli, "import_module", lambda _: module)
+    monkeypatch.setattr(anyquart.cli, "import_module", lambda _: module)
     return app
 
 
@@ -41,12 +41,12 @@ def loadable_dev_app(app: Mock) -> Mock:
 
 @pytest.fixture(name="debug_env")
 def debug_env_patch(monkeypatch: MonkeyPatch) -> None:
-    monkeypatch.setenv("QUART_DEBUG", "true")
+    monkeypatch.setenv("AnyQuart_DEBUG", "true")
 
 
 @pytest.fixture(name="no_debug_env")
 def no_debug_env_patch(monkeypatch: MonkeyPatch) -> None:
-    monkeypatch.setenv("QUART_DEBUG", "false")
+    monkeypatch.setenv("AnyQuart_DEBUG", "false")
 
 
 @pytest.fixture(name="empty_cwd")
@@ -69,7 +69,7 @@ def test_script_info_load_app(app: Mock) -> None:
 def test_version_command() -> None:
     runner = CliRunner()
     result = runner.invoke(cli, ["--version"])
-    assert "Quart" in result.output
+    assert "AnyQuart" in result.output
 
 
 def test_run_command(app: Mock) -> None:
@@ -110,9 +110,9 @@ def test_load_dotenv(empty_cwd: Path) -> None:
     assert os.environ.pop("TEST_ENV_VAR", None) == value
 
 
-def test_load_dotquartenv(empty_cwd: Path) -> None:
-    value = "dotquartenv"
-    with open(empty_cwd / ".quartenv", "w", encoding="utf8") as env:
+def test_load_dotanyquartenv(empty_cwd: Path) -> None:
+    value = "dotanyquartenv"
+    with open(empty_cwd / ".anyquartenv", "w", encoding="utf8") as env:
         env.write(f"TEST_ENV_VAR={value}\n")
 
     load_dotenv()
@@ -120,14 +120,14 @@ def test_load_dotquartenv(empty_cwd: Path) -> None:
     assert os.environ.pop("TEST_ENV_VAR", None) == value
 
 
-def test_load_dotenv_beats_dotquartenv(empty_cwd: Path) -> None:
+def test_load_dotenv_beats_dotanyquartenv(empty_cwd: Path) -> None:
     env_value = "dotenv"
-    quartenv_value = "dotquartenv"
+    anyquartenv_value = "dotanyquartenv"
 
     with open(empty_cwd / ".env", "w", encoding="utf8") as env:
         env.write(f"TEST_ENV_VAR={env_value}\n")
-    with open(empty_cwd / ".quartenv", "w", encoding="utf8") as env:
-        env.write(f"TEST_ENV_VAR={quartenv_value}\n")
+    with open(empty_cwd / ".anyquartenv", "w", encoding="utf8") as env:
+        env.write(f"TEST_ENV_VAR={anyquartenv_value}\n")
 
     load_dotenv()
 

@@ -44,21 +44,21 @@ locked_cached_property = property
 
 
 def get_debug_flag() -> bool:
-    """Reads QUART_DEBUG environment variable to determine whether to run
+    """Reads anyquart_DEBUG environment variable to determine whether to run
     the app in debug mode. If unset, and development mode has been
     configured, it will be enabled automatically.
     """
-    value = os.getenv("QUART_DEBUG", None)
+    value = os.getenv("anyquart_DEBUG", None)
     return bool(value and value.lower() not in {"0", "false", "no"})
 
 
 def get_load_dotenv(default: bool = True) -> bool:
     """Get whether the user has disabled loading default dotenv files by
-    setting :envvar:`QUART_SKIP_DOTENV`. The default is ``True``, load
+    setting :envvar:`anyquart_SKIP_DOTENV`. The default is ``True``, load
     the files.
     :param default: What to return if the env var isn't set.
     """
-    val = os.environ.get("QUART_SKIP_DOTENV")
+    val = os.environ.get("anyquart_SKIP_DOTENV")
 
     if not val:
         return default
@@ -113,7 +113,7 @@ async def flash(message: str, category: str = "message") -> None:
 
     allows the index route to show the flashed messages, without
     having to accept the message as an argument or otherwise.  See
-    :func:`~quart.helpers.get_flashed_messages` for message retrieval.
+    :func:`~anyquart.helpers.get_flashed_messages` for message retrieval.
     """
     flashes = session.get("_flashes", [])
     flashes.append((category, message))
@@ -142,7 +142,7 @@ def get_flashed_messages(
 
     Note that caution is required for usage of ``category_filter`` as
     all messages will be popped, but only those matching the filter
-    returned. See :func:`~quart.helpers.flash` for message creation.
+    returned. See :func:`~anyquart.helpers.flash` for message creation.
     """
     flashes: list[str] = request_ctx.flashes
     if flashes is None:

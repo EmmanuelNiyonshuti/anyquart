@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from werkzeug.local import LocalProxy
 
 if TYPE_CHECKING:
-    from .app import Quart
+    from .app import AnyQuart
     from .ctx import _AppCtxGlobals
     from .ctx import AppContext
     from .ctx import RequestContext
@@ -16,11 +16,11 @@ if TYPE_CHECKING:
     from .wrappers import Websocket
 
 _no_app_msg = "Not within an app context"
-_cv_app: ContextVar[AppContext] = ContextVar("quart.app_ctx")
+_cv_app: ContextVar[AppContext] = ContextVar("anyquart.app_ctx")
 app_ctx: _AppCtxGlobals = LocalProxy(  # type: ignore[assignment]
     _cv_app, unbound_message=_no_app_msg
 )
-current_app: Quart = LocalProxy(  # type: ignore[assignment]
+current_app: AnyQuart = LocalProxy(  # type: ignore[assignment]
     _cv_app, "app", unbound_message=_no_app_msg
 )
 g: _AppCtxGlobals = LocalProxy(  # type: ignore[assignment]
@@ -28,7 +28,7 @@ g: _AppCtxGlobals = LocalProxy(  # type: ignore[assignment]
 )
 
 _no_req_msg = "Not within a request context"
-_cv_request: ContextVar[RequestContext] = ContextVar("quart.request_ctx")
+_cv_request: ContextVar[RequestContext] = ContextVar("anyquart.request_ctx")
 request_ctx: RequestContext = LocalProxy(  # type: ignore[assignment]
     _cv_request, unbound_message=_no_req_msg
 )
@@ -37,7 +37,7 @@ request: Request = LocalProxy(  # type: ignore[assignment]
 )
 
 _no_websocket_msg = "Not within a websocket context"
-_cv_websocket: ContextVar[WebsocketContext] = ContextVar("quart.websocket_ctx")
+_cv_websocket: ContextVar[WebsocketContext] = ContextVar("anyquart.websocket_ctx")
 websocket_ctx: WebsocketContext = LocalProxy(  # type: ignore[assignment]
     _cv_websocket, unbound_message=_no_websocket_msg
 )

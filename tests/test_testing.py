@@ -7,24 +7,24 @@ import pytest
 from werkzeug.datastructures import Headers
 from werkzeug.wrappers import Response as WerkzeugResponse
 
-from quart import jsonify
-from quart import Quart
-from quart import redirect
-from quart import request
-from quart import Response
-from quart import session
-from quart import websocket
-from quart.datastructures import FileStorage
-from quart.testing import make_test_body_with_headers
-from quart.testing import make_test_headers_path_and_query_string
-from quart.testing import make_test_scope
-from quart.testing import QuartClient as Client
-from quart.testing import WebsocketResponseError
+from anyquart import AnyQuart
+from anyquart import jsonify
+from anyquart import redirect
+from anyquart import request
+from anyquart import Response
+from anyquart import session
+from anyquart import websocket
+from anyquart.datastructures import FileStorage
+from anyquart.testing import AnyQuartClient as Client
+from anyquart.testing import make_test_body_with_headers
+from anyquart.testing import make_test_headers_path_and_query_string
+from anyquart.testing import make_test_scope
+from anyquart.testing import WebsocketResponseError
 
 
 @pytest.mark.anyio
 async def test_methods() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     methods = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE"]
 
@@ -66,10 +66,10 @@ def test_build_headers_path_and_query_string(
     expected_host: str,
 ) -> None:
     headers, result_path, result_qs = make_test_headers_path_and_query_string(
-        Quart(__name__), path, None, query_string, None, subdomain
+        AnyQuart(__name__), path, None, query_string, None, subdomain
     )
     assert result_path == expected_path
-    assert headers["User-Agent"] == "Quart"
+    assert headers["User-Agent"] == "anyquart"
     assert headers["host"] == expected_host
     assert result_qs == expected_query_string
 
@@ -77,13 +77,13 @@ def test_build_headers_path_and_query_string(
 def test_build_headers_path_and_query_string_with_query_string_error() -> None:
     with pytest.raises(ValueError):
         make_test_headers_path_and_query_string(
-            Quart(__name__), "/?a=b", None, {"c": "d"}
+            AnyQuart(__name__), "/?a=b", None, {"c": "d"}
         )
 
 
 def test_build_headers_path_and_query_string_with_auth() -> None:
     headers, *_ = make_test_headers_path_and_query_string(
-        Quart(__name__),
+        AnyQuart(__name__),
         "/",
         None,
         None,
@@ -106,29 +106,29 @@ def test_make_test_body_with_headers_form() -> None:
 
 def test_make_test_body_with_headers_files() -> None:
     body, headers = make_test_body_with_headers(
-        files={"a": FileStorage(BytesIO(b"abc"), filename="Quart")}
+        files={"a": FileStorage(BytesIO(b"abc"), filename="anyquart")}
     )
     assert body == (
-        b'\r\n------QuartBoundary\r\nContent-Disposition: form-data; name="a"; '
-        b'filename="Quart"\r\n\r\nabc\r\n------QuartBoundary--\r\n'
+        b'\r\n------anyquartBoundary\r\nContent-Disposition: form-data; name="a"; '
+        b'filename="anyquart"\r\n\r\nabc\r\n------anyquartBoundary--\r\n'
     )
     assert headers == Headers(
-        {"Content-Type": "multipart/form-data; boundary=----QuartBoundary"}
+        {"Content-Type": "multipart/form-data; boundary=----anyquartBoundary"}
     )
 
 
 def test_make_test_body_with_headers_form_and_files() -> None:
     body, headers = make_test_body_with_headers(
-        form={"b": "c"}, files={"a": FileStorage(BytesIO(b"abc"), filename="Quart")}
+        form={"b": "c"}, files={"a": FileStorage(BytesIO(b"abc"), filename="anyquart")}
     )
     assert body == (
-        b'\r\n------QuartBoundary\r\nContent-Disposition: form-data; name="a"; '
-        b'filename="Quart"\r\n\r\nabc\r\n------QuartBoundary\r\n'
+        b'\r\n------anyquartBoundary\r\nContent-Disposition: form-data; name="a"; '
+        b'filename="anyquart"\r\n\r\nabc\r\n------anyquartBoundary\r\n'
         b'Content-Disposition: form-data; name="b"\r\n\r\nc\r\n'
-        b"------QuartBoundary--\r\n"
+        b"------anyquartBoundary--\r\n"
     )
     assert headers == Headers(
-        {"Content-Type": "multipart/form-data; boundary=----QuartBoundary"}
+        {"Content-Type": "multipart/form-data; boundary=----anyquartBoundary"}
     )
 
 
@@ -175,7 +175,7 @@ def test_make_test_scope_with_scope_base(path: str, expected_raw_path: bytes) ->
         "root_path": "",
         "headers": [],
         "extensions": {},
-        "_quart._preserve_context": False,
+        "_anyquart._preserve_context": False,
         "client": ("127.0.0.2", "1234"),
     }
 
@@ -183,10 +183,10 @@ def test_make_test_scope_with_scope_base(path: str, expected_raw_path: bytes) ->
 @pytest.mark.parametrize(
     "headers, expected",
     [
-        (None, Headers({"User-Agent": "Quart", "host": "localhost"})),
+        (None, Headers({"User-Agent": "anyquart", "host": "localhost"})),
         (
-            Headers({"User-Agent": "Quarty", "host": "quart.com"}),
-            Headers({"User-Agent": "Quarty", "host": "quart.com"}),
+            Headers({"User-Agent": "anyquarty", "host": "anyquart.com"}),
+            Headers({"User-Agent": "anyquarty", "host": "anyquart.com"}),
         ),
     ],
 )
@@ -194,7 +194,7 @@ def test_build_headers_path_and_query_string_headers_defaults(
     headers: Headers, expected: Headers
 ) -> None:
     result, path, query_string = make_test_headers_path_and_query_string(
-        Quart(__name__), "/path", headers
+        AnyQuart(__name__), "/path", headers
     )
     assert result == expected
     assert path == "/path"
@@ -203,7 +203,7 @@ def test_build_headers_path_and_query_string_headers_defaults(
 
 @pytest.mark.anyio
 async def test_remote_addr() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/")
     async def echo() -> str:
@@ -216,7 +216,7 @@ async def test_remote_addr() -> None:
 
 @pytest.mark.anyio
 async def test_json() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/", methods=["POST"])
     async def echo() -> Response:
@@ -230,7 +230,7 @@ async def test_json() -> None:
 
 @pytest.mark.anyio
 async def test_form() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/", methods=["POST"])
     async def echo() -> Response:
@@ -244,7 +244,7 @@ async def test_form() -> None:
 
 @pytest.mark.anyio
 async def test_files() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/", methods=["POST"])
     async def echo() -> Response:
@@ -261,7 +261,7 @@ async def test_files() -> None:
 
 @pytest.mark.anyio
 async def test_data() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/", methods=["POST"])
     async def echo() -> str:
@@ -276,7 +276,7 @@ async def test_data() -> None:
 
 @pytest.mark.anyio
 async def test_query_string() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/", methods=["GET"])
     async def echo() -> Response:
@@ -290,7 +290,7 @@ async def test_query_string() -> None:
 
 @pytest.mark.anyio
 async def test_redirect() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/", methods=["GET"])
     async def echo() -> str:
@@ -306,7 +306,7 @@ async def test_redirect() -> None:
 
 @pytest.mark.anyio
 async def test_cookie_jar() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.secret_key = "secret"
 
     @app.route("/", methods=["GET"])
@@ -327,7 +327,7 @@ async def test_cookie_jar() -> None:
 
 @pytest.mark.anyio
 async def test_redirect_cookie_jar() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.secret_key = "secret"
 
     @app.route("/a")
@@ -349,7 +349,7 @@ async def test_redirect_cookie_jar() -> None:
 
 @pytest.mark.anyio
 async def test_set_cookie() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/", methods=["GET"])
     async def echo() -> Response:
@@ -363,7 +363,7 @@ async def test_set_cookie() -> None:
 
 @pytest.mark.anyio
 async def test_websocket_bad_request() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/")
     async def index() -> str:
@@ -377,7 +377,7 @@ async def test_websocket_bad_request() -> None:
 
 @pytest.mark.anyio
 async def test_push_promise() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/")
     async def index() -> str:
@@ -391,7 +391,7 @@ async def test_push_promise() -> None:
 
 @pytest.mark.anyio
 async def test_session_transactions() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.secret_key = "secret"
 
     @app.route("/")
@@ -413,7 +413,7 @@ async def test_session_transactions() -> None:
 
 @pytest.mark.anyio
 async def test_with_usage() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.secret_key = "secret"
 
     @app.route("/")
@@ -429,7 +429,7 @@ async def test_with_usage() -> None:
 
 @pytest.mark.anyio
 async def test_websocket_json() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.websocket("/ws/")
     async def ws() -> None:
@@ -444,7 +444,7 @@ async def test_websocket_json() -> None:
 
 @pytest.mark.anyio
 async def test_middleware() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/")
     async def index() -> str:
@@ -486,7 +486,7 @@ async def test_middleware() -> None:
 
 @pytest.mark.anyio
 async def test_auth() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.get("/")
     async def echo() -> str:

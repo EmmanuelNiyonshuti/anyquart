@@ -5,20 +5,20 @@ from typing import cast
 import click
 import pytest
 
-from quart import abort
-from quart import Blueprint
-from quart import g
-from quart import Quart
-from quart import render_template_string
-from quart import request
-from quart import ResponseReturnValue
-from quart import websocket
-from quart.views import MethodView
+from anyquart import abort
+from anyquart import AnyQuart
+from anyquart import Blueprint
+from anyquart import g
+from anyquart import render_template_string
+from anyquart import request
+from anyquart import ResponseReturnValue
+from anyquart import websocket
+from anyquart.views import MethodView
 
 
 @pytest.mark.anyio
 async def test_blueprint_route() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     blueprint = Blueprint("blueprint", __name__)
 
     @blueprint.route("/page/")
@@ -33,7 +33,7 @@ async def test_blueprint_route() -> None:
 
 @pytest.mark.anyio
 async def test_blueprint_websocket() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     blueprint = Blueprint("blueprint", __name__)
 
     @blueprint.websocket("/ws/")
@@ -51,7 +51,7 @@ async def test_blueprint_websocket() -> None:
 
 @pytest.mark.anyio
 async def test_blueprint_url_prefix() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     blueprint = Blueprint("blueprint", __name__)
     prefix = Blueprint("prefix", __name__, url_prefix="/prefix")
 
@@ -76,7 +76,7 @@ async def test_blueprint_url_prefix() -> None:
 
 @pytest.mark.anyio
 async def test_empty_path_with_url_prefix() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     prefix = Blueprint("prefix", __name__, url_prefix="/prefix")
 
     @prefix.route("")
@@ -93,7 +93,7 @@ async def test_empty_path_with_url_prefix() -> None:
 
 @pytest.mark.anyio
 async def test_blueprint_template_filter() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     blueprint = Blueprint("blueprint", __name__)
 
     @blueprint.app_template_filter()
@@ -112,7 +112,7 @@ async def test_blueprint_template_filter() -> None:
 
 @pytest.mark.anyio
 async def test_blueprint_error_handler() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     blueprint = Blueprint("blueprint", __name__)
 
     @blueprint.route("/error/")
@@ -133,7 +133,7 @@ async def test_blueprint_error_handler() -> None:
 
 @pytest.mark.anyio
 async def test_blueprint_method_view() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     blueprint = Blueprint("blueprint", __name__)
 
     class Views(MethodView):
@@ -163,7 +163,7 @@ async def test_blueprint_method_view() -> None:
     ],
 )
 def test_cli_blueprints(cli_group: str | None, args: list[str]) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     blueprint = Blueprint("blueprint", __name__, cli_group=cli_group)
 
@@ -195,7 +195,7 @@ async def test_nesting_url_prefixes(
     parent_registration: str | None,
     child_registration: str | None,
 ) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     parent = Blueprint("parent", __name__, url_prefix=parent_init)
     child = Blueprint("child", __name__, url_prefix=child_init)
@@ -227,7 +227,7 @@ async def test_nesting_subdomains(
     child_subdomain: str | None,
     expected_subdomain: str | None,
 ) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     domain_name = "domain.tld"
     app.config["SERVER_NAME"] = domain_name
 
@@ -248,7 +248,7 @@ async def test_nesting_subdomains(
 
 @pytest.mark.anyio
 async def test_nesting_and_sibling() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     parent = Blueprint("parent", __name__, url_prefix="/parent")
     child = Blueprint("child", __name__, url_prefix="/child")
@@ -269,7 +269,7 @@ async def test_nesting_and_sibling() -> None:
 
 
 def test_unique_blueprint_names() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     bp = Blueprint("bp", __name__)
     bp2 = Blueprint("bp", __name__)
 
@@ -286,7 +286,7 @@ def test_unique_blueprint_names() -> None:
 
 @pytest.mark.anyio
 async def test_nested_blueprint() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     parent = Blueprint("parent", __name__, url_prefix="/parent")
     child = Blueprint("child", __name__)
@@ -353,7 +353,7 @@ async def test_nested_blueprint() -> None:
 
 @pytest.mark.anyio
 async def test_blueprint_renaming() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     bp = Blueprint("bp", __name__)
     bp2 = Blueprint("bp2", __name__)
@@ -397,7 +397,7 @@ def test_self_registration() -> None:
 
 @pytest.mark.anyio
 async def test_nested_callback_order() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     parent = Blueprint("parent", __name__)
     child = Blueprint("child", __name__)

@@ -19,7 +19,7 @@ from ..utils import decode_headers
 from ..wrappers import Response
 
 if TYPE_CHECKING:
-    from ..app import Quart  # noqa
+    from ..app import AnyQuart  # noqa
 
 
 class HTTPDisconnectError(Exception):
@@ -38,7 +38,7 @@ class WebsocketResponseError(Exception):
 
 class TestHTTPConnection:
     def __init__(
-        self, app: Quart, scope: HTTPScope, _preserve_context: bool = False
+        self, app: AnyQuart, scope: HTTPScope, _preserve_context: bool = False
     ) -> None:
         self.app = app
         self.headers: Headers | None = None
@@ -117,7 +117,7 @@ class TestHTTPConnection:
 
 
 class TestWebsocketConnection:
-    def __init__(self, app: Quart, scope: WebsocketScope) -> None:
+    def __init__(self, app: AnyQuart, scope: WebsocketScope) -> None:
         self.accepted = False
         self.app = app
         self.headers: Headers | None = None

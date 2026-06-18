@@ -3,8 +3,8 @@ from __future__ import annotations
 import pytest
 from werkzeug.exceptions import RequestEntityTooLarge
 
-from quart.formparser import MultiPartParser
-from quart.wrappers.request import Body
+from anyquart.formparser import MultiPartParser
+from anyquart.wrappers.request import Body
 
 
 @pytest.mark.anyio

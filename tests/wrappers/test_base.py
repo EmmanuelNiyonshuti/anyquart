@@ -6,7 +6,7 @@ import pytest
 from hypercorn.typing import HTTPScope
 from werkzeug.datastructures import Headers
 
-from quart.wrappers.base import BaseRequestWebsocket
+from anyquart.wrappers.base import BaseRequestWebsocket
 
 
 def test_basic_authorization(http_scope: HTTPScope) -> None:
@@ -53,41 +53,41 @@ def test_digest_authorization(http_scope: HTTPScope) -> None:
         (
             "GET",
             "http",
-            "quart.com",
+            "anyquart.com",
             "/",
             b"",
             "/",
             "/?",
-            "http://quart.com/",
-            "http://quart.com/",
-            "http://quart.com/",
-            "http://quart.com/",
+            "http://anyquart.com/",
+            "http://anyquart.com/",
+            "http://anyquart.com/",
+            "http://anyquart.com/",
         ),
         (
             "GET",
             "http",
-            "quart.com",
+            "anyquart.com",
             "/",
             b"a=b",
             "/",
             "/?a=b",
-            "http://quart.com/?a=b",
-            "http://quart.com/",
-            "http://quart.com/",
-            "http://quart.com/",
+            "http://anyquart.com/?a=b",
+            "http://anyquart.com/",
+            "http://anyquart.com/",
+            "http://anyquart.com/",
         ),
         (
             "GET",
             "https",
-            "quart.com",
+            "anyquart.com",
             "/branch/leaf",
             b"a=b",
             "/branch/leaf",
             "/branch/leaf?a=b",
-            "https://quart.com/branch/leaf?a=b",
-            "https://quart.com/branch/leaf",
-            "https://quart.com/",
-            "https://quart.com/",
+            "https://anyquart.com/branch/leaf?a=b",
+            "https://anyquart.com/branch/leaf",
+            "https://anyquart.com/",
+            "https://anyquart.com/",
         ),
     ],
 )

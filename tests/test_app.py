@@ -12,17 +12,17 @@ from werkzeug.datastructures import Headers
 from werkzeug.exceptions import InternalServerError
 from werkzeug.wrappers import Response as WerkzeugResponse
 
-from quart.app import Quart
-from quart.globals import session
-from quart.globals import websocket
-from quart.sessions import SecureCookieSession
-from quart.sessions import SessionInterface
-from quart.testing import no_op_push
-from quart.testing import WebsocketResponseError
-from quart.typing import ResponseReturnValue
-from quart.typing import ResponseTypes
-from quart.wrappers import Request
-from quart.wrappers import Response
+from anyquart.app import AnyQuart
+from anyquart.globals import session
+from anyquart.globals import websocket
+from anyquart.sessions import SecureCookieSession
+from anyquart.sessions import SessionInterface
+from anyquart.testing import no_op_push
+from anyquart.testing import WebsocketResponseError
+from anyquart.typing import ResponseReturnValue
+from anyquart.typing import ResponseTypes
+from anyquart.wrappers import Request
+from anyquart.wrappers import Response
 
 TEST_RESPONSE = Response("")
 
@@ -32,7 +32,7 @@ class SimpleError(Exception):
 
 
 def test_endpoint_overwrite() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     def route() -> str:
         return ""
@@ -71,7 +71,7 @@ def test_endpoint_overwrite() -> None:
 def test_add_url_rule_methods(
     methods: set[str], required_methods: set[str], automatic_options: bool
 ) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     def route() -> str:
         return ""
@@ -113,7 +113,7 @@ def test_add_url_rule_automatic_options(
     expected_methods: set[str],
     expected_automatic: bool,
 ) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     def route() -> str:
         return ""
@@ -132,14 +132,14 @@ def test_add_url_rule_automatic_options(
 
 @pytest.mark.anyio
 async def test_host_matching() -> None:
-    app = Quart(__name__, static_host="quart.com", host_matching=True)
+    app = AnyQuart(__name__, static_host="anyquart.com", host_matching=True)
 
-    @app.route("/", host="quart.com")
+    @app.route("/", host="anyquart.com")
     async def route() -> str:
         return ""
 
     test_client = app.test_client()
-    response = await test_client.get("/", headers={"host": "quart.com"})
+    response = await test_client.get("/", headers={"host": "anyquart.com"})
     assert response.status_code == 200
 
     response = await test_client.get("/", headers={"host": "localhost"})
@@ -148,15 +148,15 @@ async def test_host_matching() -> None:
 
 @pytest.mark.anyio
 async def test_subdomain() -> None:
-    app = Quart(__name__, subdomain_matching=True)
-    app.config["SERVER_NAME"] = "quart.com"
+    app = AnyQuart(__name__, subdomain_matching=True)
+    app.config["SERVER_NAME"] = "anyquart.com"
 
     @app.route("/", subdomain="<subdomain>")
     async def route(subdomain: str) -> str:
         return subdomain
 
     test_client = app.test_client()
-    response = await test_client.get("/", headers={"host": "sub.quart.com"})
+    response = await test_client.get("/", headers={"host": "sub.anyquart.com"})
     assert (await response.get_data(as_text=True)) == "sub"
 
 
@@ -191,7 +191,7 @@ async def test_subdomain() -> None:
 async def test_make_response(
     result: ResponseReturnValue, expected: Response | WerkzeugResponse, raises: bool
 ) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.config["RESPONSE_TIMEOUT"] = None
     try:
         response = await app.make_response(result)
@@ -208,8 +208,8 @@ async def test_make_response(
 
 
 @pytest.fixture(name="basic_app")
-def _basic_app() -> Quart:
-    app = Quart(__name__)
+def _basic_app() -> AnyQuart:
+    app = AnyQuart(__name__)
 
     @app.route("/")
     def route() -> str:
@@ -223,14 +223,14 @@ def _basic_app() -> Quart:
 
 
 @pytest.mark.anyio
-async def test_app_route_exception(basic_app: Quart) -> None:
+async def test_app_route_exception(basic_app: AnyQuart) -> None:
     test_client = basic_app.test_client()
     response = await test_client.get("/exception/")
     assert response.status_code == 500
 
 
 @pytest.mark.anyio
-async def test_app_before_request_exception(basic_app: Quart) -> None:
+async def test_app_before_request_exception(basic_app: AnyQuart) -> None:
     @basic_app.before_request
     def before() -> None:
         raise Exception()
@@ -241,7 +241,7 @@ async def test_app_before_request_exception(basic_app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_app_after_request_exception(basic_app: Quart) -> None:
+async def test_app_after_request_exception(basic_app: AnyQuart) -> None:
     @basic_app.after_request
     def after(_: ResponseTypes) -> None:
         raise Exception()
@@ -252,7 +252,7 @@ async def test_app_after_request_exception(basic_app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_app_after_request_handler_exception(basic_app: Quart) -> None:
+async def test_app_after_request_handler_exception(basic_app: AnyQuart) -> None:
     @basic_app.after_request
     def after(_: ResponseTypes) -> None:
         raise Exception()
@@ -266,7 +266,7 @@ async def test_app_after_request_handler_exception(basic_app: Quart) -> None:
 async def test_app_handle_request_asyncio_cancelled_error(
     http_scope: HTTPScope,
 ) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/")
     async def index() -> NoReturn:
@@ -277,7 +277,7 @@ async def test_app_handle_request_asyncio_cancelled_error(
         "http",
         "/",
         b"",
-        Headers([("host", "quart.com")]),
+        Headers([("host", "anyquart.com")]),
         "",
         "1.1",
         http_scope,
@@ -291,7 +291,7 @@ async def test_app_handle_request_asyncio_cancelled_error(
 async def test_app_handle_websocket_asyncio_cancelled_error(
     websocket_scope: WebsocketScope,
 ) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.websocket("/")
     async def index() -> NoReturn:
@@ -301,7 +301,7 @@ async def test_app_handle_websocket_asyncio_cancelled_error(
         "/",
         b"",
         "wss",
-        Headers([("host", "quart.com")]),
+        Headers([("host", "anyquart.com")]),
         "",
         "1.1",
         None,
@@ -316,8 +316,8 @@ async def test_app_handle_websocket_asyncio_cancelled_error(
 
 
 @pytest.fixture(name="session_app", scope="function")
-def _session_app() -> Quart:
-    app = Quart(__name__)
+def _session_app() -> AnyQuart:
+    app = AnyQuart(__name__)
     app.session_interface = AsyncMock(spec=SessionInterface)
     app.session_interface.open_session.return_value = SecureCookieSession()
     app.session_interface.is_null_session.return_value = False
@@ -342,7 +342,7 @@ def _session_app() -> Quart:
 
 
 @pytest.mark.anyio
-async def test_app_session(session_app: Quart) -> None:
+async def test_app_session(session_app: AnyQuart) -> None:
     test_client = session_app.test_client()
     await test_client.get("/")
     session_app.session_interface.open_session.assert_called()  # type: ignore
@@ -350,7 +350,7 @@ async def test_app_session(session_app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_app_session_websocket(session_app: Quart) -> None:
+async def test_app_session_websocket(session_app: AnyQuart) -> None:
     test_client = session_app.test_client()
     async with test_client.websocket("/ws/") as test_websocket:
         await test_websocket.receive()
@@ -359,7 +359,7 @@ async def test_app_session_websocket(session_app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_app_session_websocket_return(session_app: Quart) -> None:
+async def test_app_session_websocket_return(session_app: AnyQuart) -> None:
     test_client = session_app.test_client()
     async with test_client.websocket("/ws_return/") as test_websocket:
         with pytest.raises(WebsocketResponseError):
@@ -381,7 +381,7 @@ async def test_app_session_websocket_return(session_app: Quart) -> None:
 async def test_propagation(
     debug: bool, testing: bool, raises: bool, http_scope: HTTPScope
 ) -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.route("/")
     async def exception() -> ResponseReturnValue:
@@ -417,7 +417,7 @@ async def test_test_app() -> None:
     shutdown = False
     serving = []
 
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
 
     @app.before_serving
     async def before() -> None:

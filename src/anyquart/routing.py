@@ -10,7 +10,7 @@ from werkzeug.routing import Rule
 from .wrappers.base import BaseRequestWebsocket
 
 
-class QuartRule(Rule):
+class AnyQuartRule(Rule):
     def __init__(
         self,
         string: str,
@@ -38,7 +38,7 @@ class QuartRule(Rule):
         self.provide_automatic_options = provide_automatic_options
 
 
-class QuartMap(Map):
+class AnyQuartMap(Map):
     def bind_to_request(
         self,
         request: BaseRequestWebsocket,

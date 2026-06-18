@@ -6,20 +6,20 @@ import pytest
 from hypercorn.typing import HTTPScope
 from werkzeug.datastructures import Headers
 
-from quart.routing import QuartMap
-from quart.testing import no_op_push
-from quart.wrappers.request import Request
+from anyquart.routing import AnyQuartMap
+from anyquart.testing import no_op_push
+from anyquart.wrappers.request import Request
 
 
 @pytest.mark.parametrize(
     "server_name, warns",
-    [("localhost", False), ("quart.com", True)],
+    [("localhost", False), ("anyquart.com", True)],
 )
 @pytest.mark.anyio
 async def test_bind_warning(
     server_name: str, warns: bool, http_scope: HTTPScope
 ) -> None:
-    map_ = QuartMap(host_matching=False)
+    map_ = AnyQuartMap(host_matching=False)
     request = Request(
         "GET",
         "http",

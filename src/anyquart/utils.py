@@ -58,7 +58,7 @@ def run_sync(func: Callable[..., Any]) -> Callable[..., Coroutine[None, None, An
         else:
             return result
 
-    _wrapper._quart_async_wrapper = True  # type: ignore
+    _wrapper._anyquart_async_wrapper = True  # type: ignore
     return _wrapper
 
 
@@ -144,7 +144,7 @@ def restart() -> None:
         # Executed by filename
         if platform.system() == "Windows":
             if not script_path.exists() and script_path.with_suffix(".exe").exists():
-                # quart run
+                # anyquart run
                 executable = str(script_path.with_suffix(".exe"))
             else:
                 # python run.py

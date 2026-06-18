@@ -27,13 +27,13 @@ from ..json import dumps
 from ..utils import encode_headers
 
 if TYPE_CHECKING:
-    from ..app import Quart  # noqa
+    from ..app import AnyQuart  # noqa
 
 sentinel = object()
 
 
 def make_test_headers_path_and_query_string(
-    app: Quart,
+    app: AnyQuart,
     path: str,
     headers: dict | Headers | None = None,
     query_string: dict | None = None,
@@ -63,7 +63,7 @@ def make_test_headers_path_and_query_string(
             auth = Authorization("basic", {"username": auth[0], "password": auth[1]})
         headers.setdefault("Authorization", auth.to_header())
 
-    headers.setdefault("User-Agent", "Quart")
+    headers.setdefault("User-Agent", "anyquart")
     host = app.config["SERVER_NAME"] or "localhost"
     if subdomain is not None:
         host = f"{subdomain}.{host}"
@@ -84,7 +84,7 @@ def make_test_body_with_headers(
     form: dict | None = None,
     files: dict[str, FileStorage] | None = None,
     json: Any = sentinel,
-    app: Quart | None = None,
+    app: AnyQuart | None = None,
 ) -> tuple[bytes, Headers]:
     """Make the body bytes with associated headers.
 
@@ -99,11 +99,11 @@ def make_test_body_with_headers(
     """
     if [json is not sentinel, form is not None, data is not None].count(True) > 1:
         raise ValueError(
-            "Quart test args 'json', 'form', and 'data' are mutually exclusive"
+            "anyquart test args 'json', 'form', and 'data' are mutually exclusive"
         )
     if [json is not sentinel, files is not None, data is not None].count(True) > 1:
         raise ValueError(
-            "Quart test args 'files', 'json', and 'data' are mutually exclusive"
+            "anyquart test args 'files', 'json', and 'data' are mutually exclusive"
         )
 
     request_data = b""
@@ -119,7 +119,7 @@ def make_test_body_with_headers(
         request_data = dumps(json).encode("utf-8")
         headers["Content-Type"] = "application/json"
     elif files is not None:
-        boundary = "----QuartBoundary"
+        boundary = "----anyquartBoundary"
         headers["Content-Type"] = f"multipart/form-data; boundary={boundary}"
         encoder = MultipartEncoder(boundary.encode())
         request_data += encoder.send_event(Preamble(data=b""))
@@ -207,7 +207,7 @@ def make_test_scope(
         "root_path": root_path,
         "headers": encode_headers(headers),
         "extensions": {},
-        "_quart._preserve_context": _preserve_context,
+        "_anyquart._preserve_context": _preserve_context,
     }
     if scope_base is not None:
         scope.update(scope_base)
@@ -222,7 +222,7 @@ async def no_op_push(path: str, headers: Headers) -> None:
     """A push promise sender that does nothing.
 
     This is best used when creating Request instances for testing
-    outside of the QuartClient. The Request instance must know what to
+    outside of the AnyQuartClient. The Request instance must know what to
     do with push promises, and this gives it the option of doing
     nothing.
     """

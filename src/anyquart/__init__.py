@@ -3,7 +3,7 @@ from __future__ import annotations
 from markupsafe import escape as escape
 from markupsafe import Markup as Markup
 
-from .app import Quart as Quart
+from .app import AnyQuart as AnyQuart
 from .blueprints import Blueprint as Blueprint
 from .config import Config as Config
 from .ctx import after_this_request as after_this_request

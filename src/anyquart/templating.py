@@ -20,21 +20,21 @@ from .signals import before_render_template
 from .signals import template_rendered
 
 if TYPE_CHECKING:
-    from .app import Quart  # noqa
+    from .app import AnyQuart  # noqa
 
 
 class Environment(BaseEnvironment):
-    """Quart specific Jinja Environment.
+    """anyquart specific Jinja Environment.
 
     This changes the default Jinja loader to use the
     DispatchingJinjaLoader, and enables async Jinja by default.
     """
 
-    def __init__(self, app: Quart, **options: Any) -> None:
-        """Create a Quart specific Jinja Environment.
+    def __init__(self, app: AnyQuart, **options: Any) -> None:
+        """Create a anyquart specific Jinja Environment.
 
         Arguments:
-            app: The Quart app to bind to.
+            app: The anyquart app to bind to.
             options: The standard Jinja Environment options.
         """
         if "loader" not in options:
@@ -70,7 +70,7 @@ async def render_template_string(source: str, **context: Any) -> str:
     return await _render(template, context, current_app._get_current_object())  # type: ignore
 
 
-async def _render(template: Template, context: dict, app: Quart) -> str:
+async def _render(template: Template, context: dict, app: AnyQuart) -> str:
     await before_render_template.send_async(
         app,
         _sync_wrapper=app.ensure_async,  # type: ignore[arg-type]
@@ -131,7 +131,7 @@ async def stream_template_string(source: str, **context: Any) -> AsyncIterator[s
 
 
 async def _stream(
-    app: Quart, template: Template, context: dict[str, Any]
+    app: AnyQuart, template: Template, context: dict[str, Any]
 ) -> AsyncIterator[str]:
     await before_render_template.send_async(
         app,

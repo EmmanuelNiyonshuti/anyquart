@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 from werkzeug.datastructures import Headers
 
-from quart.utils import decode_headers
-from quart.utils import encode_headers
-from quart.utils import run_sync_iterable
+from anyquart.utils import decode_headers
+from anyquart.utils import encode_headers
+from anyquart.utils import run_sync_iterable
 
 
 def test_encode_headers() -> None:

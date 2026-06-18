@@ -1,12 +1,12 @@
 [project]
-name = "Quart"
+name = "AnyQuart"
 version = "0.20.0"
-description = "A Python ASGI web framework with the same API as Flask"
+description = "A fork of Quart that uses AnyIO"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE.txt"]
 authors = [{ name = "pgjones", email = "philip.graham.jones@googlemail.com" }]
-maintainers = [{ name = "Pallets", email = "contact@palletsprojects.com" }]
+maintainers = [{ name = "NIYONSHUTI Emmanuel", email = "emmanuelniyonshuti13@gmail.com" }]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Web Environment",
@@ -25,26 +25,25 @@ dependencies = [
     "click>=8.0",
     "flask>=3.0",
     "hypercorn>=0.11.2",
-    "importlib-metadata; python_version < '3.10'",
+    "importlib-metadata; python_version < '3.13'",
     "itsdangerous",
     "jinja2",
     "markupsafe",
-    "typing-extensions; python_version < '3.10'",
+    "typing-extensions; python_version < '3.13'",
     "werkzeug>=3.0",
 ]
 
 [project.urls]
 Donate = "https://palletsprojects.com/donate"
 Documentation = "https://quart.palletsprojects.com"
-Changes = "https://quart.palletsprojects.com/page/changes/"
-Source = "https://github.com/pallets/quart/"
-Chat = "https://discord.gg/pallets"
+Changes = "https://github.com/EmmanuelNiyonshuti/anyquart/page/changes/"
+Source = "https://github.com/EmmanuelNiyonshuti/anyquart"
 
 [project.optional-dependencies]
 dotenv = ["python-dotenv"]
 
 [project.scripts]
-quart = "quart.cli:main"
+anyquart = "anyquart.cli:main"
 
 [dependency-groups]
 dev = [
@@ -86,7 +85,7 @@ requires = ["flit-core<4"]
 build-backend = "flit_core.buildapi"
 
 [tool.flit.module]
-name = "quart"
+name = "anyquart"
 
 [tool.uv]
 default-groups = ["dev", "pre-commit", "tests", "typing"]
@@ -100,7 +99,7 @@ filterwarnings = [
 
 [tool.coverage.run]
 branch = true
-source = ["quart", "tests"]
+source = ["anyquart", "tests"]
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
@@ -174,7 +173,7 @@ constrain_package_deps = true
 use_frozen_constraints = true
 dependency_groups = ["tests"]
 commands = [[
-    "pytest", "-v", "--tb=short", "--basetemp={env_tmp_dir}", "--cov=quart",
+    "pytest", "-v", "--tb=short", "--basetemp={env_tmp_dir}", "--cov=anyquart",
     {replace = "posargs", default = [], extend = true},
 ]]
 

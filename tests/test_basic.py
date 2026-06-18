@@ -6,20 +6,20 @@ from typing import cast
 import pytest
 from werkzeug.wrappers import Response as WerkzeugResponse
 
-from quart import abort
-from quart import jsonify
-from quart import Quart
-from quart import request
-from quart import Response
-from quart import ResponseReturnValue
-from quart import url_for
-from quart import websocket
-from quart.testing import WebsocketResponseError
+from anyquart import abort
+from anyquart import AnyQuart
+from anyquart import jsonify
+from anyquart import request
+from anyquart import Response
+from anyquart import ResponseReturnValue
+from anyquart import url_for
+from anyquart import websocket
+from anyquart.testing import WebsocketResponseError
 
 
 @pytest.fixture
-def app() -> Quart:
-    app = Quart(__name__)
+def app() -> AnyQuart:
+    app = AnyQuart(__name__)
 
     @app.route("/")
     async def index() -> ResponseReturnValue:
@@ -88,7 +88,7 @@ def app() -> Quart:
 
 @pytest.mark.parametrize("path", ["/", "/sync/"])
 @pytest.mark.anyio
-async def test_index(path: str, app: Quart) -> None:
+async def test_index(path: str, app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get(path)
     assert response.status_code == 200
@@ -96,14 +96,14 @@ async def test_index(path: str, app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_iri(app: Quart) -> None:
+async def test_iri(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/❤️")
     assert "💔".encode() in (await response.get_data())
 
 
 @pytest.mark.anyio
-async def test_options(app: Quart) -> None:
+async def test_options(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.options("/")
     assert response.status_code == 200
@@ -115,7 +115,7 @@ async def test_options(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_json(app: Quart) -> None:
+async def test_json(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.post("/json/", json={"value": "json"})
     assert response.status_code == 200
@@ -123,7 +123,7 @@ async def test_json(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_implicit_json(app: Quart) -> None:
+async def test_implicit_json(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.post("/implicit_json/", json={"value": "json"})
     assert response.status_code == 200
@@ -131,7 +131,7 @@ async def test_implicit_json(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_implicit_json_list(app: Quart) -> None:
+async def test_implicit_json_list(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.post("/implicit_json/", json=["a", 2])
     assert response.status_code == 200
@@ -139,7 +139,7 @@ async def test_implicit_json_list(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_werkzeug(app: Quart) -> None:
+async def test_werkzeug(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/werkzeug/")
     assert response.status_code == 200
@@ -147,7 +147,7 @@ async def test_werkzeug(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_generic_error(app: Quart) -> None:
+async def test_generic_error(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/error/")
     assert response.status_code == 409
@@ -155,7 +155,7 @@ async def test_generic_error(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_url_defaults(app: Quart) -> None:
+async def test_url_defaults(app: AnyQuart) -> None:
     @app.url_defaults
     def defaults(_: str, values: dict) -> None:
         values["value"] = "hello"
@@ -165,7 +165,7 @@ async def test_url_defaults(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_not_found_error(app: Quart) -> None:
+async def test_not_found_error(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/not_found/")
     assert response.status_code == 404
@@ -173,7 +173,7 @@ async def test_not_found_error(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_make_response_str(app: Quart) -> None:
+async def test_make_response_str(app: AnyQuart) -> None:
     response = await app.make_response("Result")
     assert response.status_code == 200
     assert (await response.get_data()) == b"Result"  # type: ignore
@@ -191,7 +191,7 @@ async def test_make_response_str(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_make_response_response(app: Quart) -> None:
+async def test_make_response_response(app: AnyQuart) -> None:
     response = await app.make_response(Response("Result"))
     assert response.status_code == 200
     assert (await response.get_data()) == b"Result"  # type: ignore
@@ -208,7 +208,7 @@ async def test_make_response_response(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_make_response_errors(app: Quart) -> None:
+async def test_make_response_errors(app: AnyQuart) -> None:
     with pytest.raises(TypeError):
         await app.make_response(("Result", {"name": "value"}, 200))  # type: ignore
     with pytest.raises(TypeError):
@@ -218,7 +218,7 @@ async def test_make_response_errors(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_websocket(app: Quart) -> None:
+async def test_websocket(app: AnyQuart) -> None:
     test_client = app.test_client()
     data = b"bob"
     async with test_client.websocket("/ws/") as test_websocket:
@@ -228,7 +228,7 @@ async def test_websocket(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_websocket_abort(app: Quart) -> None:
+async def test_websocket_abort(app: AnyQuart) -> None:
     test_client = app.test_client()
     try:
         async with test_client.websocket("/ws/abort/") as test_websocket:
@@ -238,7 +238,7 @@ async def test_websocket_abort(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_root_path(app: Quart) -> None:
+async def test_root_path(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/", root_path="/bob")
     assert response.status_code == 404
@@ -247,7 +247,7 @@ async def test_root_path(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_stream(app: Quart) -> None:
+async def test_stream(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/stream")
     assert (await response.get_data()) == b"Hello World"

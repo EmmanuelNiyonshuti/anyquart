@@ -38,11 +38,11 @@ from .wrappers import Response  # noqa: F401
 from .wrappers import Websocket  # noqa: F401
 
 if TYPE_CHECKING:
-    from .app import Quart  # noqa: F401
+    from .app import AnyQuart  # noqa: F401
 
 
 class ASGIHTTPConnection:
-    def __init__(self, app: Quart, scope: HTTPScope) -> None:
+    def __init__(self, app: AnyQuart, scope: HTTPScope) -> None:
         self.app = app
         self.scope = scope
 
@@ -176,7 +176,7 @@ class ASGIHTTPConnection:
 
 
 class ASGIWebsocketConnection:
-    def __init__(self, app: Quart, scope: WebsocketScope) -> None:
+    def __init__(self, app: AnyQuart, scope: WebsocketScope) -> None:
         self.app = app
         self.scope = scope
         self.queue: asyncio.Queue = asyncio.Queue()
@@ -351,7 +351,7 @@ class ASGIWebsocketConnection:
 
 
 class ASGILifespan:
-    def __init__(self, app: Quart, scope: LifespanScope) -> None:
+    def __init__(self, app: AnyQuart, scope: LifespanScope) -> None:
         self.app = app
 
     async def __call__(
@@ -400,7 +400,7 @@ def _convert_version(raw: str) -> list[int]:
     return list(map(int, raw.split(".")))
 
 
-async def _handle_exception(app: Quart, error: Exception) -> Response:
+async def _handle_exception(app: AnyQuart, error: Exception) -> Response:
     if not app.testing and app.config["PROPAGATE_EXCEPTIONS"]:
         return await traceback_response(error)
     else:

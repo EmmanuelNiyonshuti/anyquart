@@ -9,9 +9,9 @@ from werkzeug.datastructures import Headers
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.exceptions import RequestTimeout
 
-from quart.testing import no_op_push
-from quart.wrappers.request import Body
-from quart.wrappers.request import Request
+from anyquart.testing import no_op_push
+from anyquart.wrappers.request import Body
+from anyquart.wrappers.request import Request
 
 
 async def _fill_body(body: Body, semaphore: asyncio.Semaphore, limit: int) -> None:
@@ -129,7 +129,7 @@ async def test_request_values(
         "/",
         b"a=b&a=c",
         Headers(
-            {"host": "quart.com", "Content-Type": "application/x-www-form-urlencoded"}
+            {"host": "anyquart.com", "Content-Type": "application/x-www-form-urlencoded"}
         ),
         "",
         "1.1",
@@ -156,11 +156,11 @@ async def test_request_send_push_promise(http_scope: HTTPScope) -> None:
         b"a=b&a=c",
         Headers(
             {
-                "host": "quart.com",
+                "host": "anyquart.com",
                 "Content-Type": "application/x-www-form-urlencoded",
                 "Accept": "*/*",
                 "Accept-Encoding": "gzip",
-                "User-Agent": "quart",
+                "User-Agent": "anyquart",
             }
         ),
         "",
@@ -170,7 +170,7 @@ async def test_request_send_push_promise(http_scope: HTTPScope) -> None:
     )
     await request.send_push_promise("/")
     assert push_promise[0] == "/"
-    valid_headers = {"Accept": "*/*", "Accept-Encoding": "gzip", "User-Agent": "quart"}
+    valid_headers = {"Accept": "*/*", "Accept-Encoding": "gzip", "User-Agent": "anyquart"}
     assert len(push_promise[1]) == len(valid_headers)
     for name, value in valid_headers.items():
         assert push_promise[1][name] == value

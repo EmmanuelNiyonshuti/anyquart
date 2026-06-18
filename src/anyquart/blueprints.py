@@ -72,7 +72,7 @@ class Blueprint(SansioBlueprint):
         to ``None``, which tells the browser to use conditional requests
         instead of a timed cache, which is usually preferable.
 
-        Note this is a duplicate of the same method in the Quart
+        Note this is a duplicate of the same method in the anyquart
         class.
 
         """
@@ -120,7 +120,7 @@ class Blueprint(SansioBlueprint):
 
         This is designed to be used as a decorator, if used to
         decorate a synchronous function, the function will be wrapped
-        in :func:`~quart.utils.run_sync` and run in a thread executor
+        in :func:`~anyquart.utils.run_sync` and run in a thread executor
         (with the wrapped function returned). An example usage,
 
         .. code-block:: python
@@ -222,7 +222,7 @@ class Blueprint(SansioBlueprint):
 
         This is designed to be used as a decorator, if used to
         decorate a synchronous function, the function will be wrapped
-        in :func:`~quart.utils.run_sync` and run in a thread executor
+        in :func:`~anyquart.utils.run_sync` and run in a thread executor
         (with the wrapped function returned). An example usage,
 
         .. code-block:: python
@@ -246,7 +246,7 @@ class Blueprint(SansioBlueprint):
 
         This is designed to be used as a decorator, if used to
         decorate a synchronous function, the function will be wrapped
-        in :func:`~quart.utils.run_sync` and run in a thread executor
+        in :func:`~anyquart.utils.run_sync` and run in a thread executor
         (with the wrapped function returned). An example usage,
 
         .. code-block:: python
@@ -269,7 +269,7 @@ class Blueprint(SansioBlueprint):
         """Add a teardown websocket function.
         This is designed to be used as a decorator, if used to
         decorate a synchronous function, the function will be wrapped
-        in :func:`~quart.utils.run_sync` and run in a thread executor
+        in :func:`~anyquart.utils.run_sync` and run in a thread executor
         (with the wrapped function returned). An example usage,
         .. code-block:: python
             @app.teardown_websocket
@@ -287,7 +287,7 @@ class Blueprint(SansioBlueprint):
         """Add a before websocket to the App.
 
         This is designed to be used as a decorator, and has the same arguments
-        as :meth:`~quart.Quart.before_websocket`. It applies to all requests to the
+        as :meth:`~anyquart.anyquart.before_websocket`. It applies to all requests to the
         app this blueprint is registered on. An example usage,
 
         .. code-block:: python
@@ -306,7 +306,7 @@ class Blueprint(SansioBlueprint):
         """Add a before serving to the App.
 
         This is designed to be used as a decorator, and has the same arguments
-        as :meth:`~quart.Quart.before_serving`. An example usage,
+        as :meth:`~anyquart.anyquart.before_serving`. An example usage,
 
         .. code-block:: python
 
@@ -324,7 +324,7 @@ class Blueprint(SansioBlueprint):
         """Add an after websocket function to the App.
 
         This is designed to be used as a decorator, and has the same arguments
-        as :meth:`~quart.Quart.after_websocket`. It applies to all requests to the
+        as :meth:`~anyquart.anyquart.after_websocket`. It applies to all requests to the
         ppe this blueprint is registered on. An example usage,
 
         .. code-block:: python
@@ -342,7 +342,7 @@ class Blueprint(SansioBlueprint):
         """Add an after serving function to the App.
 
         This is designed to be used as a decorator, and has the same arguments
-        as :meth:`~quart.Quart.after_serving`. An example usage,
+        as :meth:`~anyquart.anyquart.after_serving`. An example usage,
 
         .. code-block:: python
 
@@ -359,7 +359,7 @@ class Blueprint(SansioBlueprint):
         """Add a while serving function to the App.
 
         This is designed to be used as a decorator, and has the same arguments
-        as :meth:`~quart.Quart.while_serving`. An example usage,
+        as :meth:`~anyquart.anyquart.while_serving`. An example usage,
 
         .. code-block:: python
 
@@ -378,7 +378,7 @@ class Blueprint(SansioBlueprint):
         """Add a teardown websocket function to the app.
 
         This is designed to be used as a decorator, and has the same
-        arguments as :meth:`~quart.Quart.teardown_websocket`. It applies
+        arguments as :meth:`~anyquart.anyquart.teardown_websocket`. It applies
         to all requests to the app this blueprint is registered on. An
         example usage,
 

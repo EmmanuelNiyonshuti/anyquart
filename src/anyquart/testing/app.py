@@ -12,7 +12,7 @@ from hypercorn.typing import LifespanScope
 from ..typing import TestClientProtocol
 
 if TYPE_CHECKING:
-    from ..app import Quart  # noqa
+    from ..app import AnyQuart  # noqa
 
 DEFAULT_TIMEOUT = 6
 
@@ -24,7 +24,7 @@ class LifespanError(Exception):
 class TestApp:
     def __init__(
         self,
-        app: Quart,
+        app: AnyQuart,
         startup_timeout: int = DEFAULT_TIMEOUT,
         shutdown_timeout: int = DEFAULT_TIMEOUT,
     ) -> None:

@@ -4,22 +4,21 @@ from collections.abc import Callable
 from typing import Any
 
 import pytest
-
-from quart import Quart
-from quart import request
-from quart import ResponseReturnValue
-from quart.views import MethodView
-from quart.views import View
+from anyquart import AnyQuart
+from anyquart import request
+from anyquart import ResponseReturnValue
+from anyquart.views import MethodView
+from anyquart.views import View
 
 
 @pytest.fixture
-def app() -> Quart:
-    app = Quart(__name__)
+def app() -> AnyQuart:
+    app = AnyQuart(__name__)
     return app
 
 
 @pytest.mark.anyio
-async def test_view(app: Quart) -> None:
+async def test_view(app: AnyQuart) -> None:
     class Views(View):
         methods = ["GET", "POST"]
 
@@ -38,7 +37,7 @@ async def test_view(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_method_view(app: Quart) -> None:
+async def test_method_view(app: AnyQuart) -> None:
     class Views(MethodView):
         async def get(self) -> ResponseReturnValue:
             return "GET"
@@ -56,7 +55,7 @@ async def test_method_view(app: Quart) -> None:
 
 
 @pytest.mark.anyio
-async def test_view_decorators(app: Quart) -> None:
+async def test_view_decorators(app: AnyQuart) -> None:
     def decorate_status_code(func: Callable) -> Callable:
         async def wrapper(*args: Any, **kwargs: Any) -> ResponseReturnValue:
             response = await func(*args, **kwargs)

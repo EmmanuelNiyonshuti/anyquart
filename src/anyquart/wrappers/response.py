@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 class ResponseBody(ABC):
     """Base class wrapper for response body data.
 
-    This ensures that the following is possible (as Quart assumes so
+    This ensures that the following is possible (as anyquart assumes so
     when returning the body to the ASGI server
 
         async with wrapper as response:
@@ -238,7 +238,7 @@ class Response(SansIOResponse):
     """This class represents a response.
 
     It can be subclassed and the subclassed used in preference by
-    replacing the :attr:`~quart.Quart.response_class` with your
+    replacing the :attr:`~anyquart.anyquart.response_class` with your
     subclass.
 
     Attributes:

@@ -31,7 +31,7 @@ except ModuleNotFoundError:
     from importlib_metadata import version  # type: ignore
 
 if TYPE_CHECKING:
-    from .app import Quart  # noqa: F401
+    from .app import AnyQuart  # noqa: F401
 
 
 class NoAppException(click.UsageError):
@@ -63,22 +63,22 @@ def _called_with_wrong_args(f: Callable) -> bool:
         del tb
 
 
-def find_best_app(module: ModuleType) -> Quart:
-    from .app import Quart
+def find_best_app(module: ModuleType) -> AnyQuart:
+    from .app import AnyQuart
 
     for attr_name in ("app", "application"):
         app = getattr(module, attr_name, None)
 
-        if isinstance(app, Quart):
+        if isinstance(app, AnyQuart):
             return app
 
-    matches = [value for value in module.__dict__.values() if isinstance(value, Quart)]
+    matches = [value for value in module.__dict__.values() if isinstance(value, AnyQuart)]
 
     if len(matches) == 1:
         return matches[0]
     elif len(matches) > 1:
         raise NoAppException(
-            "Detected multiple Quart applications in module"
+            "Detected multiple anyquart applications in module"
             f" '{module.__name__}'. Use '{module.__name__}:name'"
             " to specify the correct one."
         )
@@ -90,7 +90,7 @@ def find_best_app(module: ModuleType) -> Quart:
             try:
                 app = app_factory()
 
-                if isinstance(app, Quart):
+                if isinstance(app, AnyQuart):
                     return app
             except TypeError as error:
                 if not _called_with_wrong_args(app_factory):
@@ -104,14 +104,14 @@ def find_best_app(module: ModuleType) -> Quart:
                 ) from error
 
     raise NoAppException(
-        "Failed to find Quart application or factory in module"
+        "Failed to find AnyQuart application or factory in module"
         f" '{module.__name__}'. Use '{module.__name__}:name'"
         " to specify one."
     )
 
 
-def find_app_by_string(module: ModuleType, app_name: str) -> Quart:
-    from .app import Quart
+def find_app_by_string(module: ModuleType, app_name: str) -> AnyQuart:
+    from .app import AnyQuart
 
     try:
         expr = ast.parse(app_name.strip(), mode="eval").body
@@ -172,16 +172,16 @@ def find_app_by_string(module: ModuleType, app_name: str) -> Quart:
     else:
         app = attr
 
-    if isinstance(app, Quart):
+    if isinstance(app, AnyQuart):
         return app
 
     raise NoAppException(
-        "A valid Quart application was not obtained from"
+        "A valid AnyQuart application was not obtained from"
         f" '{module.__name__}:{app_name}'."
     )
 
 
-def locate_app(module_name: str, app_name: str) -> Quart | None:
+def locate_app(module_name: str, app_name: str) -> AnyQuart | None:
     try:
         module = import_module(module_name)
     except ImportError:
@@ -234,16 +234,16 @@ class ScriptInfo:
     def __init__(
         self,
         app_import_path: str | None = None,
-        create_app: Callable[..., Quart] | None = None,
+        create_app: Callable[..., AnyQuart] | None = None,
         set_debug_flag: bool = True,
     ) -> None:
         self.app_import_path = app_import_path
         self.create_app = create_app
         self.data: dict[Any, Any] = {}
         self.set_debug_flag = set_debug_flag
-        self._loaded_app: Quart | None = None
+        self._loaded_app: AnyQuart | None = None
 
-    def load_app(self) -> Quart:
+    def load_app(self) -> AnyQuart:
         if self._loaded_app is not None:
             return self._loaded_app
 
@@ -262,8 +262,8 @@ class ScriptInfo:
 
         if not app:
             raise NoAppException(
-                "Could not locate a Quart application. Use the"
-                " 'quart --app' option, 'QUART_APP' environment"
+                "Could not locate a AnyQuart application. Use the"
+                " 'AnyQuart --app' option, 'AnyQuart_APP' environment"
                 " variable, or an 'app.py' file in the"
                 " current directory."
             )
@@ -312,7 +312,7 @@ class AppGroup(click.Group):
     changes the behavior of the :meth:`command` decorator so that it
     automatically wraps the functions in :func:`with_appcontext`.
 
-    Not to be confused with :class:`QuartGroup`.
+    Not to be confused with :class:`AnyQuartGroup`.
     """
 
     def command(self, *args: Any, **kwargs: Any) -> Callable:  # type: ignore
@@ -338,12 +338,12 @@ def get_version(ctx: Any, param: Any, value: Any) -> None:
     if not value or ctx.resilient_parsing:
         return
 
-    quart_version = version("quart")
+    anyquart_version = version("anyquart")
     werkzeug_version = version("werkzeug")
 
     click.echo(
         f"Python {platform.python_version()}\n"
-        f"Quart {quart_version}\n"
+        f"AnyQuart {anyquart_version}\n"
         f"Werkzeug {werkzeug_version}",
         color=ctx.color,
     )
@@ -352,7 +352,7 @@ def get_version(ctx: Any, param: Any, value: Any) -> None:
 
 version_option = click.Option(
     ["--version"],
-    help="Show the Quart version",
+    help="Show the AnyQuart version",
     expose_value=False,
     callback=get_version,
     is_flag=True,
@@ -372,12 +372,13 @@ def _set_app(ctx: click.Context, param: click.Option, value: str | None) -> str 
 # This option is eager so the app will be available if --help is given.
 # --help is also eager, so --app must be before it in the param list.
 # no_args_is_help bypasses eager processing, so this option must be
-# processed manually in that case to ensure QUART_APP gets picked up.
+# processed manually in that case to ensure AnyQuart_APP gets picked up.
 _app_option = click.Option(
     ["-A", "--app"],
     metavar="IMPORT",
     help=(
-        "The QUART application or factory function to load, in the form 'module:name'."
+        "The AnyQuart application or factory function to load,"
+        "in the form 'module:name'."
         " Module can be a dotted import or file path. Name is not required if it is"
         " 'app', 'application', 'create_app', or 'make_app', and can be 'name(args)' to"
         " pass arguments."
@@ -401,7 +402,7 @@ def _set_debug(ctx: click.Context, param: click.Option, value: bool) -> bool | N
 
     # Set with env var instead of ScriptInfo.load so that it can be
     # accessed early during a factory function.
-    os.environ["QUART_DEBUG"] = "1" if value else "0"
+    os.environ["AnyQuart_DEBUG"] = "1" if value else "0"
     return value
 
 
@@ -430,8 +431,8 @@ def _env_file_callback(
             param=param,
         ) from None
 
-    # Don't check QUART_SKIP_DOTENV, that only disables automatically
-    # loading .env and .quartenv files.
+    # Don't check anyquart_SKIP_DOTENV, that only disables automatically
+    # loading .env and .anyquartenv files.
     load_dotenv(value)
     return value
 
@@ -448,11 +449,11 @@ _env_file_option = click.Option(
 )
 
 
-class QuartGroup(AppGroup):
+class AnyQuartGroup(AppGroup):
     def __init__(
         self,
         add_default_commands: bool = True,
-        create_app: Callable[..., Quart] | None = None,
+        create_app: Callable[..., AnyQuart] | None = None,
         add_version_option: bool = True,
         load_dotenv: bool = True,
         set_debug_flag: bool = True,
@@ -471,7 +472,7 @@ class QuartGroup(AppGroup):
         if "context_settings" not in extra:
             extra["context_settings"] = {}
 
-        extra["context_settings"].setdefault("auto_envvar_prefix", "QUART")
+        extra["context_settings"].setdefault("auto_envvar_prefix", "Quart")
 
         super().__init__(params=params, **extra)
 
@@ -489,7 +490,7 @@ class QuartGroup(AppGroup):
     def _load_plugin_commands(self) -> None:
         if self._loaded_plugin_commands:
             return
-        for point in entry_points(group="quart.commands"):
+        for point in entry_points(group="anyquart.commands"):
             self.add_command(point.load(), point.name)
 
         self._loaded_plugin_commands = True
@@ -542,7 +543,7 @@ class QuartGroup(AppGroup):
         parent: click.Context | None = None,
         **extra: Any,
     ) -> click.Context:
-        # Attempt to load .env and .quartenv files. The --env-file
+        # Attempt to load .env and .anyquartenv files. The --env-file
         # option can cause another file to be loaded.
         if get_load_dotenv(self.load_dotenv):
             load_dotenv()
@@ -577,9 +578,9 @@ def load_dotenv(path: str | os.PathLike | None = None) -> bool:
     try:
         import dotenv
     except ImportError:
-        if path or os.path.isfile(".env") or os.path.isfile(".quartenv"):
+        if path or os.path.isfile(".env") or os.path.isfile(".anyquartenv"):
             click.secho(
-                " * Tip: There are .env or .quartenv files present."
+                " * Tip: There are .env or .anyquartenv files present."
                 ' Do "pip install python-dotenv" to use them.',
                 fg="yellow",
                 err=True,
@@ -597,7 +598,7 @@ def load_dotenv(path: str | os.PathLike | None = None) -> bool:
 
     loaded = False
 
-    for name in (".env", ".quartenv"):
+    for name in (".env", ".anyquartenv"):
         path = dotenv.find_dotenv(name, usecwd=True)
 
         if not path:
@@ -659,7 +660,7 @@ def run_command(
 @with_appcontext
 def shell_command() -> None:
     """Run an interactive Python shell in the context of a given
-    Quart application.  The application will populate the default
+    anyquart application.  The application will populate the default
     namespace of this shell according to its configuration.
     This is useful for executing small snippets of management code
     without having to manually configure the application.
@@ -693,7 +694,7 @@ def shell_command() -> None:
             pass
         else:
             # rlcompleter uses __main__.__dict__ by default, which is
-            # quart.__main__. Use the shell context instead.
+            # anyquart.__main__. Use the shell context instead.
             readline.set_completer(Completer(ctx).complete)
 
         interactive_hook()
@@ -708,7 +709,7 @@ def shell_command() -> None:
     type=click.Choice(("endpoint", "methods", "domain", "rule", "match")),
     default="endpoint",
     help=(
-        'Method to sort routes by. "match" is the order that Quart will match '
+        'Method to sort routes by. "match" is the order that anyquart will match '
         "routes when dispatching a request."
     ),
 )
@@ -753,12 +754,12 @@ def routes_command(sort: str, all_methods: bool) -> None:
         click.echo(template.format(*row))
 
 
-cli = QuartGroup(
-    name="quart",
+cli = AnyQuartGroup(
+    name="AnyQuart",
     help="""\
-A general utility script for Quart applications.
+A general utility script for AnyQuart applications.
 An application to load must be given with the '--app' option,
-'QUART_APP' environment variable, or with an 'app.py' file
+'AnyQuart_APP' environment variable, or with an 'app.py' file
 in the current directory.
 """,
 )

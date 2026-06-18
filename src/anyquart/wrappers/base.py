@@ -10,7 +10,7 @@ from werkzeug.sansio.request import Request as SansIORequest
 from .. import json
 
 if TYPE_CHECKING:
-    from ..routing import QuartRule  # noqa
+    from ..routing import AnyQuartRule  # noqa
 
 
 class BaseRequestWebsocket(SansIORequest):
@@ -28,7 +28,7 @@ class BaseRequestWebsocket(SansIORequest):
 
     json_module: json.provider.JSONProvider = json  # type: ignore
     routing_exception: Exception | None = None
-    url_rule: QuartRule | None = None
+    url_rule: AnyQuartRule | None = None
     view_args: dict[str, Any] | None = None
 
     def __init__(

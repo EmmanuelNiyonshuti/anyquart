@@ -29,7 +29,7 @@ from .utils import make_test_scope
 from .utils import sentinel
 
 if TYPE_CHECKING:
-    from ..app import Quart  # noqa
+    from ..app import AnyQuart  # noqa
 
 
 class _TestWrapper:
@@ -53,14 +53,14 @@ class _TestCookieJarResponse:
         return _TestWrapper(self.headers)
 
 
-class QuartClient:
+class AnyQuartClient:
     http_connection_class: type[TestHTTPConnectionProtocol]
     websocket_connection_class: type[TestWebsocketConnectionProtocol]
 
     http_connection_class = TestHTTPConnection
     websocket_connection_class = TestWebsocketConnection
 
-    def __init__(self, app: Quart, use_cookies: bool = True) -> None:
+    def __init__(self, app: AnyQuart, use_cookies: bool = True) -> None:
         self.app = app
         self.cookie_jar: CookieJar | None
         if use_cookies:
@@ -216,7 +216,7 @@ class QuartClient:
     async def delete(self, *args: Any, **kwargs: Any) -> Response:
         """Make a DELETE request.
 
-        See :meth:`~quart.testing.QuartClient.open` for argument
+        See :meth:`~anyquart.testing.AnyQuartClient.open` for argument
         details.
         """
         return await self.open(*args, method="DELETE", **kwargs)
@@ -224,7 +224,7 @@ class QuartClient:
     async def get(self, *args: Any, **kwargs: Any) -> Response:
         """Make a GET request.
 
-        See :meth:`~quart.testing.QuartClient.open` for argument
+        See :meth:`~anyquart.testing.AnyQuartClient.open` for argument
         details.
         """
         return await self.open(*args, method="GET", **kwargs)
@@ -232,7 +232,7 @@ class QuartClient:
     async def head(self, *args: Any, **kwargs: Any) -> Response:
         """Make a HEAD request.
 
-        See :meth:`~quart.testing.QuartClient.open` for argument
+        See :meth:`~anyquart.testing.AnyQuartClient.open` for argument
         details.
         """
         return await self.open(*args, method="HEAD", **kwargs)
@@ -240,7 +240,7 @@ class QuartClient:
     async def options(self, *args: Any, **kwargs: Any) -> Response:
         """Make a OPTIONS request.
 
-        See :meth:`~quart.testing.QuartClient.open` for argument
+        See :meth:`~anyquart.testing.AnyQuartClient.open` for argument
         details.
         """
         return await self.open(*args, method="OPTIONS", **kwargs)
@@ -248,7 +248,7 @@ class QuartClient:
     async def patch(self, *args: Any, **kwargs: Any) -> Response:
         """Make a PATCH request.
 
-        See :meth:`~quart.testing.QuartClient.open` for argument
+        See :meth:`~anyquart.testing.AnyQuartClient.open` for argument
         details.
         """
         return await self.open(*args, method="PATCH", **kwargs)
@@ -256,7 +256,7 @@ class QuartClient:
     async def post(self, *args: Any, **kwargs: Any) -> Response:
         """Make a POST request.
 
-        See :meth:`~quart.testing.QuartClient.open` for argument
+        See :meth:`~anyquart.testing.AnyQuartClient.open` for argument
         details.
         """
         return await self.open(*args, method="POST", **kwargs)
@@ -264,7 +264,7 @@ class QuartClient:
     async def put(self, *args: Any, **kwargs: Any) -> Response:
         """Make a PUT request.
 
-        See :meth:`~quart.testing.QuartClient.open` for argument
+        See :meth:`~anyquart.testing.AnyQuartClient.open` for argument
         details.
         """
         return await self.open(*args, method="PUT", **kwargs)
@@ -272,7 +272,7 @@ class QuartClient:
     async def trace(self, *args: Any, **kwargs: Any) -> Response:
         """Make a TRACE request.
 
-        See :meth:`~quart.testing.QuartClient.open` for argument
+        See :meth:`~anyquart.testing.AnyQuartClient.open` for argument
         details.
         """
         return await self.open(*args, method="TRACE", **kwargs)
@@ -382,7 +382,7 @@ class QuartClient:
                 U2Request(ctx.request.url),
             )
 
-    async def __aenter__(self) -> QuartClient:
+    async def __aenter__(self) -> AnyQuartClient:
         if self.preserve_context:
             raise RuntimeError("Cannot nest client invocations")
         self.preserve_context = True
