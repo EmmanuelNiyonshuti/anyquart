@@ -8,6 +8,7 @@ import warnings
 from collections import defaultdict
 from collections.abc import AsyncGenerator
 from collections.abc import Awaitable
+from collections.abc import Callable
 from collections.abc import Coroutine
 from datetime import timedelta
 from inspect import isasyncgen
@@ -16,7 +17,6 @@ from inspect import isgenerator
 from types import TracebackType
 from typing import Any
 from typing import AnyStr
-from typing import Callable
 from typing import cast
 from typing import NoReturn
 from typing import Optional
@@ -25,8 +25,9 @@ from typing import ParamSpec
 from typing import TypeVar
 from urllib.parse import quote
 
-from aiofiles import open as async_open
-from aiofiles.base import AiofilesContextManager
+import anyio
+from anyio import AsyncFile
+from anyio import open_file as async_open
 from flask.sansio.app import App
 from flask.sansio.scaffold import setupmethod
 from hypercorn.asyncio import serve
@@ -221,9 +222,9 @@ class Quart(App):
     asgi_lifespan_class = ASGILifespan
     asgi_websocket_class = ASGIWebsocketConnection
     config_class = Config
-    event_class = asyncio.Event
+    event_class = anyio.Event
     jinja_environment = Environment  # type: ignore[assignment]
-    lock_class = asyncio.Lock
+    lock_class = anyio.Lock
     request_class = Request
     response_class = Response
     session_interface = SecureCookieSessionInterface()
@@ -328,7 +329,8 @@ class Quart(App):
         self.after_websocket_funcs: dict[
             AppOrBlueprintKey, list[AfterWebsocketCallable]
         ] = defaultdict(list)
-        self.background_tasks: set[asyncio.Task] = set()
+        self.background_tasks: set[anyio.TaskHandle] = set()
+        self.before_serving_funcs: list[Callable[[], Awaitable[None]]] = []
         self.before_serving_funcs: list[Callable[[], Awaitable[None]]] = []
         self.before_websocket_funcs: dict[
             AppOrBlueprintKey, list[BeforeWebsocketCallable]
@@ -388,7 +390,7 @@ class Quart(App):
         self,
         path: FilePath,
         mode: str = "rb",
-    ) -> AiofilesContextManager:
+    ) -> AsyncFile:
         """Open a file for reading.
 
         Use as
@@ -405,7 +407,7 @@ class Quart(App):
 
     async def open_instance_resource(
         self, path: FilePath, mode: str = "rb"
-    ) -> AiofilesContextManager:
+    ) -> AsyncFile:
         """Open a file for reading.
 
         Use as
