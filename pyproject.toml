@@ -36,7 +36,6 @@ dependencies = [
 [project.urls]
 Donate = "https://palletsprojects.com/donate"
 Documentation = "https://quart.palletsprojects.com"
-Changes = "https://github.com/EmmanuelNiyonshuti/anyquart/page/changes/"
 Source = "https://github.com/EmmanuelNiyonshuti/anyquart"
 
 [project.optional-dependencies]
@@ -52,14 +51,7 @@ dev = [
     "tox",
     "tox-uv",
 ]
-docs = [
-    "myst-parser",
-    "pydata-sphinx-theme",
-    "sphinx",
-]
-docs-auto = [
-    "sphinx-autobuild",
-]
+
 gha-update = [
     "gha-update ; python_full_version >= '3.12'",
 ]
@@ -171,7 +163,7 @@ package = "wheel"
 wheel_build_env = ".pkg"
 constrain_package_deps = true
 use_frozen_constraints = true
-dependency_groups = ["tests"]
+dependency_groups = ["tests", "dev"]
 commands = [[
     "pytest", "-v", "--tb=short", "--basetemp={env_tmp_dir}", "--cov=anyquart",
     {replace = "posargs", default = [], extend = true},
