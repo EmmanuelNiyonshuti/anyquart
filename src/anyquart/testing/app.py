@@ -42,20 +42,19 @@ class TestApp:
             create_memory_object_stream[dict](10)
             )
         self._tg_cm: AbstractAsyncContextManager[TaskGroup]
-        self._tg: Awaitable[None] = None
 
     def test_client(self) -> TestClientProtocol:
         return self.app.test_client()
 
     async def __aenter__(self) -> TestApp:
         self._tg_cm = create_task_group()
-        self._tg = await self._tg_cm.__aenter__()
+        entered_tg = await self._tg_cm.__aenter__()
         scope: LifespanScope = {
             "type": "lifespan",
             "asgi": {"spec_version": "2.0"},
             "state": {},
         }
-        self._tg.start_soon(
+        entered_tg.start_soon(
             self.app, scope, self._asgi_receive, self._asgi_send
         )
         await self._app_send_stream.send({"type": "lifespan.startup"})
