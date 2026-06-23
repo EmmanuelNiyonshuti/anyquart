@@ -1,11 +1,10 @@
 ---
 name: Bug report
-about: Report a bug in anyquart (not other projects which depend on anyquart)
+about: Report a bug in AnyQuart.
 ---
 
 <!--
-This issue tracker is a tool to address bugs in anyquart itself. Please use
-GitHub Discussions or the Pallets Discord for questions about your own code.
+This issue tracker is a tool to address bugs in AnyQuart itself.
 
 Replace this comment with a clear outline of what the bug is.
 -->
@@ -24,4 +23,4 @@ Describe the expected behavior that should have happened but didn't.
 Environment:
 
 - Python version:
-- anyquart version:
+- AnyQuart version:

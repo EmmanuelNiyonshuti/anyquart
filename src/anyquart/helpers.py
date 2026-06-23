@@ -44,21 +44,21 @@ locked_cached_property = property
 
 
 def get_debug_flag() -> bool:
-    """Reads anyquart_DEBUG environment variable to determine whether to run
+    """Reads AnyQuart_DEBUG environment variable to determine whether to run
     the app in debug mode. If unset, and development mode has been
     configured, it will be enabled automatically.
     """
-    value = os.getenv("anyquart_DEBUG", None)
+    value = os.getenv("AnyQuart_DEBUG", None)
     return bool(value and value.lower() not in {"0", "false", "no"})
 
 
 def get_load_dotenv(default: bool = True) -> bool:
     """Get whether the user has disabled loading default dotenv files by
-    setting :envvar:`anyquart_SKIP_DOTENV`. The default is ``True``, load
+    setting :envvar:`AnyQuart_SKIP_DOTENV`. The default is ``True``, load
     the files.
     :param default: What to return if the env var isn't set.
     """
-    val = os.environ.get("anyquart_SKIP_DOTENV")
+    val = os.environ.get("AnyQuart_SKIP_DOTENV")
 
     if not val:
         return default

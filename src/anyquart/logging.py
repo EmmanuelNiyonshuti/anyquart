@@ -65,7 +65,7 @@ def has_level_handler(logger: Logger) -> bool:
 def create_logger(app: AnyQuart) -> Logger:
     """Create a logger for the app based on the app settings.
 
-    This creates a logger named anyquart.app that has a log level based
+    This creates a logger named AnyQuart.app that has a log level based
     on the app configuration.
     """
     logger = getLogger(app.name)

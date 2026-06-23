@@ -24,17 +24,17 @@ if TYPE_CHECKING:
 
 
 class Environment(BaseEnvironment):
-    """anyquart specific Jinja Environment.
+    """AnyQuart specific Jinja Environment.
 
     This changes the default Jinja loader to use the
     DispatchingJinjaLoader, and enables async Jinja by default.
     """
 
     def __init__(self, app: AnyQuart, **options: Any) -> None:
-        """Create a anyquart specific Jinja Environment.
+        """Create a AnyQuart specific Jinja Environment.
 
         Arguments:
-            app: The anyquart app to bind to.
+            app: The AnyQuart app to bind to.
             options: The standard Jinja Environment options.
         """
         if "loader" not in options:
