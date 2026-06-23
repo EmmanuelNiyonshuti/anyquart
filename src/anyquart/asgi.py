@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import warnings
 from functools import partial
 from typing import AnyStr
@@ -8,21 +7,27 @@ from typing import cast
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
-from hypercorn.typing import ASGIReceiveCallable
-from hypercorn.typing import ASGISendCallable
-from hypercorn.typing import HTTPResponseBodyEvent
-from hypercorn.typing import HTTPResponseStartEvent
-from hypercorn.typing import HTTPScope
-from hypercorn.typing import LifespanScope
-from hypercorn.typing import LifespanShutdownCompleteEvent
-from hypercorn.typing import LifespanShutdownFailedEvent
-from hypercorn.typing import LifespanStartupCompleteEvent
-from hypercorn.typing import LifespanStartupFailedEvent
-from hypercorn.typing import WebsocketAcceptEvent
-from hypercorn.typing import WebsocketCloseEvent
-from hypercorn.typing import WebsocketResponseBodyEvent
-from hypercorn.typing import WebsocketResponseStartEvent
-from hypercorn.typing import WebsocketScope
+from anycorn.typing import ASGIReceiveCallable
+from anycorn.typing import ASGISendCallable
+from anycorn.typing import HTTPResponseBodyEvent
+from anycorn.typing import HTTPResponseStartEvent
+from anycorn.typing import HTTPScope
+from anycorn.typing import LifespanScope
+from anycorn.typing import LifespanShutdownCompleteEvent
+from anycorn.typing import LifespanShutdownFailedEvent
+from anycorn.typing import LifespanStartupCompleteEvent
+from anycorn.typing import LifespanStartupFailedEvent
+from anycorn.typing import WebsocketAcceptEvent
+from anycorn.typing import WebsocketCloseEvent
+from anycorn.typing import WebsocketResponseBodyEvent
+from anycorn.typing import WebsocketResponseStartEvent
+from anycorn.typing import WebsocketScope
+from anyio import create_memory_object_stream
+from anyio import create_task_group
+from anyio import fail_after
+from anyio.abc import ObjectReceiveStream
+from anyio.abc import ObjectSendStream
+from anyio.abc import TaskGroup
 from werkzeug.datastructures import Headers
 from werkzeug.wrappers import Response as WerkzeugResponse
 
@@ -30,9 +35,7 @@ from .debug import traceback_response
 from .signals import websocket_received
 from .signals import websocket_sent
 from .typing import ResponseTypes
-from .utils import cancel_tasks
 from .utils import encode_headers
-from .utils import raise_task_exceptions
 from .wrappers import Request  # noqa: F401
 from .wrappers import Response  # noqa: F401
 from .wrappers import Websocket  # noqa: F401
@@ -50,25 +53,27 @@ class ASGIHTTPConnection:
         self, receive: ASGIReceiveCallable, send: ASGISendCallable
     ) -> None:
         request = self._create_request_from_scope(send)
-        receiver_task = asyncio.ensure_future(self.handle_messages(request, receive))
-        handler_task = asyncio.ensure_future(self.handle_request(request, send))
-        done, pending = await asyncio.wait(
-            [handler_task, receiver_task], return_when=asyncio.FIRST_COMPLETED
-        )
-        await cancel_tasks(pending)
-        raise_task_exceptions(done)
+        async with create_task_group() as tg:
+            tg.start_soon(self.handle_messages, request, receive, tg)
+            tg.start_soon(self.handle_request, request, send, tg)
+
 
     async def handle_messages(
-        self, request: Request, receive: ASGIReceiveCallable
-    ) -> None:
+        self,
+        request: Request,
+        receive: ASGIReceiveCallable,
+        tg: TaskGroup | None = None
+        ) -> None:
         while True:
             message = await receive()
             if message["type"] == "http.request":
                 request.body.append(message.get("body", b""))
                 if not message.get("more_body", False):
                     request.body.set_complete()
+                    return
             elif message["type"] == "http.disconnect":
                 return
+        tg.cancel_scope.cancel()
 
     def _create_request_from_scope(self, send: ASGISendCallable) -> Request:
         headers = Headers()
@@ -102,20 +107,23 @@ class ASGIHTTPConnection:
             scope=self.scope,
         )
 
-    async def handle_request(self, request: Request, send: ASGISendCallable) -> None:
-        try:
-            response = await self.app.handle_request(request)
-        except Exception as error:
-            response = await _handle_exception(self.app, error)
-
+    async def handle_request(
+        self,
+        request: Request,
+        send: ASGISendCallable,
+        tg: TaskGroup | None = None
+        ) -> None:
+        response = await self.app.handle_request(request)
         if isinstance(response, Response) and response.timeout != Ellipsis:
             timeout = cast(float | None, response.timeout)
         else:
             timeout = self.app.config["RESPONSE_TIMEOUT"]
-        try:
-            await asyncio.wait_for(self._send_response(send, response), timeout=timeout)
-        except asyncio.TimeoutError:
-            pass
+        if timeout is not None:
+            with fail_after(timeout):
+                await self._send_response(send, response)
+        else:
+            await self._send_response(send, response)
+        tg.cancel_scope.cancel()
 
     async def _send_response(
         self, send: ASGISendCallable, response: ResponseTypes
@@ -179,33 +187,45 @@ class ASGIWebsocketConnection:
     def __init__(self, app: AnyQuart, scope: WebsocketScope) -> None:
         self.app = app
         self.scope = scope
-        self.queue: asyncio.Queue = asyncio.Queue()
         self._accepted = False
         self._closed = False
 
     async def __call__(
         self, receive: ASGIReceiveCallable, send: ASGISendCallable
     ) -> None:
-        websocket = self._create_websocket_from_scope(send)
-        receiver_task = asyncio.ensure_future(self.handle_messages(receive))
-        handler_task = asyncio.ensure_future(self.handle_websocket(websocket, send))
-        done, pending = await asyncio.wait(
-            [handler_task, receiver_task], return_when=asyncio.FIRST_COMPLETED
-        )
-        await cancel_tasks(pending)
-        raise_task_exceptions(done)
+        send_stream, receive_stream = create_memory_object_stream[bytes | str](10)
+        websocket = self._create_websocket_from_scope(send, receive_stream)
+        try:
+            async with create_task_group() as tg:
+                tg.start_soon(self.handle_messages, receive, send_stream, tg)
+                tg.start_soon(self.handle_websocket, websocket, send, tg)
+        finally:
+            await send_stream.aclose()
+            await receive_stream.aclose()
 
-    async def handle_messages(self, receive: ASGIReceiveCallable) -> None:
-        while True:
-            event = await receive()
-            if event["type"] == "websocket.receive":
-                message = event.get("bytes") or event["text"]
-                await websocket_received.send_async(message)
-                await self.queue.put(message)
-            elif event["type"] == "websocket.disconnect":
-                return
+    async def handle_messages(
+        self,
+        receive: ASGIReceiveCallable,
+        send_stream: ObjectSendStream,
+        tg: TaskGroup,
+        ) -> None:
+        try:
+            while True:
+                event = await receive()
+                if event["type"] == "websocket.receive":
+                    message = event.get("bytes") or event["text"]
+                    await websocket_received.send_async(message)
+                    await send_stream.send(message)
+                elif event["type"] == "websocket.disconnect":
+                    return
+        finally:
+            tg.cancel_scope.cancel()
 
-    def _create_websocket_from_scope(self, send: ASGISendCallable) -> Websocket:
+    def _create_websocket_from_scope(
+        self,
+        send: ASGISendCallable,
+        receive_stream: ObjectReceiveStream
+        ) -> Websocket:
         headers = Headers()
         headers["Remote-Addr"] = (self.scope.get("client") or ["<local>"])[0]
         for name, value in self.scope["headers"]:
@@ -229,7 +249,7 @@ class ASGIWebsocketConnection:
             self.scope.get("root_path", ""),
             self.scope.get("http_version", "1.1"),
             list(self.scope.get("subprotocols", [])),
-            self.queue.get,
+            receive_stream.receive,
             partial(self.send_data, send),
             partial(self.accept_connection, send),
             partial(self.close_connection, send),
@@ -237,8 +257,11 @@ class ASGIWebsocketConnection:
         )
 
     async def handle_websocket(
-        self, websocket: Websocket, send: ASGISendCallable
-    ) -> None:
+        self,
+        websocket: Websocket,
+        send: ASGISendCallable,
+        tg: TaskGroup,
+        ) -> None:
         try:
             response = await self.app.handle_websocket(websocket)
         except Exception as error:
@@ -304,6 +327,8 @@ class ASGIWebsocketConnection:
             await send(
                 cast(WebsocketCloseEvent, {"type": "websocket.close", "code": 1000})
             )
+
+        tg.cancel_scope.cancel()
 
     async def send_data(self, send: ASGISendCallable, data: AnyStr) -> None:
         if isinstance(data, str):

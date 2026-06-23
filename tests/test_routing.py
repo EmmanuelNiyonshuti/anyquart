@@ -3,7 +3,7 @@ from __future__ import annotations
 import warnings
 
 import pytest
-from hypercorn.typing import HTTPScope
+from anycorn.typing import HTTPScope
 from werkzeug.datastructures import Headers
 
 from anyquart.routing import AnyQuartMap

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import inspect
 import os
 import platform
@@ -151,7 +150,7 @@ def restart() -> None:
                 args = [str(script_path), *args]
         else:
             if script_path.is_file() and os.access(script_path, os.X_OK):
-                # hypercorn run:app --reload
+                # anycorn run:app --reload
                 executable = str(script_path)
             else:
                 # python run.py
@@ -166,18 +165,3 @@ def restart() -> None:
 
     os.execv(executable, [executable] + args)
 
-
-async def cancel_tasks(tasks: set[asyncio.Task]) -> None:
-    # Cancel any pending, and wait for the cancellation to
-    # complete i.e. finish any remaining work.
-    for task in tasks:
-        task.cancel()
-    await asyncio.gather(*tasks, return_exceptions=True)
-    raise_task_exceptions(tasks)
-
-
-def raise_task_exceptions(tasks: set[asyncio.Task]) -> None:
-    # Raise any unexpected exceptions
-    for task in tasks:
-        if not task.cancelled() and task.exception() is not None:
-            raise task.exception()

@@ -1,13 +1,18 @@
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Awaitable
+from contextlib import AbstractAsyncContextManager
 from types import TracebackType
 from typing import TYPE_CHECKING
 
-from hypercorn.typing import ASGIReceiveEvent
-from hypercorn.typing import ASGISendEvent
-from hypercorn.typing import LifespanScope
+from anycorn.typing import ASGIReceiveEvent
+from anycorn.typing import ASGISendEvent
+from anycorn.typing import LifespanScope
+from anyio import create_memory_object_stream
+from anyio import create_task_group
+from anyio import Event
+from anyio import fail_after
+from anyio.abc import TaskGroup
 
 from ..typing import TestClientProtocol
 
@@ -31,45 +36,46 @@ class TestApp:
         self.app = app
         self.startup_timeout = startup_timeout
         self.shutdown_timeout = shutdown_timeout
-        self._startup = asyncio.Event()
-        self._shutdown = asyncio.Event()
-        self._app_queue: asyncio.Queue = asyncio.Queue()
-        self._task: Awaitable[None] = None
+        self._startup = Event()
+        self._shutdown = Event()
+        self._app_send_stream, self._app_receive_stream = (
+            create_memory_object_stream[dict](10)
+            )
+        self._tg_cm: AbstractAsyncContextManager[TaskGroup]
+        self._tg: Awaitable[None] = None
 
     def test_client(self) -> TestClientProtocol:
         return self.app.test_client()
 
-    async def startup(self) -> None:
+    async def __aenter__(self) -> TestApp:
+        self._tg_cm = create_task_group()
+        self._tg = await self._tg_cm.__aenter__()
         scope: LifespanScope = {
             "type": "lifespan",
             "asgi": {"spec_version": "2.0"},
             "state": {},
         }
-        self._task = asyncio.ensure_future(
-            self.app(scope, self._asgi_receive, self._asgi_send)
+        self._tg.start_soon(
+            self.app, scope, self._asgi_receive, self._asgi_send
         )
-        await self._app_queue.put({"type": "lifespan.startup"})
-        await asyncio.wait_for(self._startup.wait(), timeout=self.startup_timeout)
-        if self._task.done():
-            # This will re-raise any exceptions in the task
-            await self._task
-
-    async def shutdown(self) -> None:
-        await self._app_queue.put({"type": "lifespan.shutdown"})
-        await asyncio.wait_for(self._shutdown.wait(), timeout=self.shutdown_timeout)
-        await self._task
-
-    async def __aenter__(self) -> TestApp:
-        await self.startup()
+        await self._app_send_stream.send({"type": "lifespan.startup"})
+        with fail_after(self.startup_timeout):
+            await self._startup.wait()
         return self
 
     async def __aexit__(
         self, exc_type: type, exc_value: BaseException, tb: TracebackType
     ) -> None:
-        await self.shutdown()
+        await self._app_send_stream.send({"type": "lifespan.shutdown"})
+        with fail_after(self.shutdown_timeout):
+            await self._shutdown.wait()
+
+        await self._app_send_stream.aclose()
+        await self._tg_cm.__aexit__(exc_type, exc_value, tb)
+        await self._app_receive_stream.aclose()
 
     async def _asgi_receive(self) -> ASGIReceiveEvent:
-        return await self._app_queue.get()
+        return await self._app_receive_stream.receive()
 
     async def _asgi_send(self, message: ASGISendEvent) -> None:
         if message["type"] == "lifespan.startup.complete":

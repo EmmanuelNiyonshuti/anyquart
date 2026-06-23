@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import asyncio
 from collections.abc import AsyncGenerator
 from typing import NoReturn
 from unittest.mock import AsyncMock
 
 import pytest
-from hypercorn.typing import HTTPScope
-from hypercorn.typing import WebsocketScope
+from anycorn.typing import HTTPScope
+from anycorn.typing import WebsocketScope
+from anyio import get_cancelled_exc_class
 from werkzeug.datastructures import Headers
 from werkzeug.exceptions import InternalServerError
 from werkzeug.wrappers import Response as WerkzeugResponse
@@ -160,6 +160,7 @@ async def test_subdomain() -> None:
     assert (await response.get_data(as_text=True)) == "sub"
 
 
+
 @pytest.mark.parametrize(
     "result, expected, raises",
     [
@@ -183,7 +184,7 @@ async def test_subdomain() -> None:
             False,
         ),
         (InternalServerError(), InternalServerError().get_response(), False),
-        ((val for val in "abcd"), Response(val for val in "abcd"), False),
+        (b"abcd", Response(b"abcd"), False),
         (int, None, True),
     ],
 )
@@ -263,9 +264,12 @@ async def test_app_after_request_handler_exception(basic_app: AnyQuart) -> None:
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize("anyio_backend", ["asyncio"])
 async def test_app_handle_request_asyncio_cancelled_error(
-    http_scope: HTTPScope,
+    http_scope: HTTPScope, anyio_backend: str
 ) -> None:
+    import asyncio
+
     app = AnyQuart(__name__)
 
     @app.route("/")
@@ -288,14 +292,15 @@ async def test_app_handle_request_asyncio_cancelled_error(
 
 
 @pytest.mark.anyio
-async def test_app_handle_websocket_asyncio_cancelled_error(
-    websocket_scope: WebsocketScope,
+@pytest.mark.parametrize("anyio_backend", ["asyncio"])
+async def test_app_handle_websocket_backend_cancelled_error(
+    websocket_scope: WebsocketScope, anyio_backend: str
 ) -> None:
     app = AnyQuart(__name__)
 
     @app.websocket("/")
     async def index() -> NoReturn:
-        raise asyncio.CancelledError()
+        raise get_cancelled_exc_class()()
 
     websocket = app.websocket_class(
         "/",
@@ -311,7 +316,7 @@ async def test_app_handle_websocket_asyncio_cancelled_error(
         None,
         websocket_scope,
     )
-    with pytest.raises(asyncio.CancelledError):
+    with pytest.raises(get_cancelled_exc_class()):
         await app.handle_websocket(websocket)
 
 

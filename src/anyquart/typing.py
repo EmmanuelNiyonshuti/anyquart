@@ -14,11 +14,11 @@ from typing import AnyStr
 from typing import Protocol
 from typing import TYPE_CHECKING
 
-from hypercorn.typing import ASGIReceiveCallable
-from hypercorn.typing import ASGISendCallable
-from hypercorn.typing import HTTPScope
-from hypercorn.typing import LifespanScope
-from hypercorn.typing import WebsocketScope
+from anycorn.typing import ASGIReceiveCallable
+from anycorn.typing import ASGISendCallable
+from anycorn.typing import HTTPScope
+from anycorn.typing import LifespanScope
+from anycorn.typing import WebsocketScope
 
 from .datastructures import FileStorage
 

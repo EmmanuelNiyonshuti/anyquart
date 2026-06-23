@@ -1,16 +1,19 @@
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Awaitable
-from types import TracebackType
+from contextlib import AbstractAsyncContextManager
 from typing import Any
 from typing import AnyStr
 from typing import TYPE_CHECKING
 
-from hypercorn.typing import ASGIReceiveEvent
-from hypercorn.typing import ASGISendEvent
-from hypercorn.typing import HTTPScope
-from hypercorn.typing import WebsocketScope
+from anycorn.typing import ASGIReceiveEvent
+from anycorn.typing import ASGISendEvent
+from anycorn.typing import HTTPScope
+from anycorn.typing import WebsocketScope
+from anyio import ClosedResourceError
+from anyio import create_memory_object_stream
+from anyio import create_task_group
+from anyio.abc import TaskGroup
 from werkzeug.datastructures import Headers
 
 from ..json import dumps
@@ -47,73 +50,79 @@ class TestHTTPConnection:
         self.scope = scope
         self.status_code: int | None = None
         self._preserve_context = _preserve_context
-        self._send_queue: asyncio.Queue = asyncio.Queue()
-        self._receive_queue: asyncio.Queue = asyncio.Queue()
-        self._task: Awaitable[None] = None
+        self._server_send, self._server_receive = (
+            create_memory_object_stream[dict](10))
+        self._client_send, self._client_receive = (
+            create_memory_object_stream[bytes | Exception](10))
+        self._tg_cm: AbstractAsyncContextManager[TaskGroup]
 
     async def send(self, data: bytes) -> None:
-        await self._send_queue.put(
+        await self._server_send.send(
             {"type": "http.request", "body": data, "more_body": True}
         )
 
     async def send_complete(self) -> None:
-        await self._send_queue.put(
+        await self._server_send.send(
             {"type": "http.request", "body": b"", "more_body": False}
         )
+        await self._server_send.aclose()
 
     async def receive(self) -> bytes:
-        data = await self._receive_queue.get()
+        data = await self._client_receive.receive()
         if isinstance(data, Exception):
             raise data
         else:
             return data
 
     async def disconnect(self) -> None:
-        await self._send_queue.put({"type": "http.disconnect"})
+        await self._server_send.send({"type": "http.disconnect"})
+        await self._server_send.aclose()
 
     async def __aenter__(self) -> TestHTTPConnection:
-        self._task = asyncio.ensure_future(
-            self.app(self.scope, self._asgi_receive, self._asgi_send)
-        )
+        self._tg_cm = create_task_group()
+        tg_entered = await self._tg_cm.__aenter__()
+        tg_entered.start_soon(
+            self.app, self.scope, self._asgi_receive, self._asgi_send)
         return self
 
-    async def __aexit__(
-        self, exc_type: type, exc_value: BaseException, tb: TracebackType
-    ) -> None:
+    async def __aexit__(self, exc_type, exc_value, tb):
         if exc_type is not None:
             await self.disconnect()
-        await self._task
-        while not self._receive_queue.empty():
-            data = await self._receive_queue.get()
-            if isinstance(data, bytes):
-                self.response_data.extend(data)
-            elif not isinstance(data, HTTPDisconnectError):
-                raise data
+        try:
+            await self._tg_cm.__aexit__(exc_type, exc_value, tb)
+            async for data in self._client_receive:
+                if isinstance(data, bytes):
+                    self.response_data.extend(data)
+                elif not isinstance(data, HTTPDisconnectError):
+                    raise data
+        finally:
+            await self._client_receive.aclose()
+            await self._server_receive.aclose()
+            await self._client_send.aclose()
 
     async def as_response(self) -> Response:
-        while not self._receive_queue.empty():
-            data = await self._receive_queue.get()
-            if isinstance(data, bytes):
-                self.response_data.extend(data)
         return self.app.response_class(
             bytes(self.response_data), self.status_code, self.headers
         )
 
     async def _asgi_receive(self) -> ASGIReceiveEvent:
-        return await self._send_queue.get()
+        return await self._server_receive.receive()
 
     async def _asgi_send(self, message: ASGISendEvent) -> None:
         if message["type"] == "http.response.start":
             self.headers = decode_headers(message["headers"])
             self.status_code = message["status"]
         elif message["type"] == "http.response.body":
-            await self._receive_queue.put(message["body"])
+            await self._client_send.send(message["body"])
+            if not message.get("more_body", False):
+                await self._client_send.aclose()
         elif message["type"] == "http.response.push":
             self.push_promises.append(
                 (message["path"], decode_headers(message["headers"]))
             )
         elif message["type"] == "http.disconnect":
-            await self._receive_queue.put(HTTPDisconnectError())
+            await self._client_send.send(HTTPDisconnectError())
+            await self._client_send.aclose()
 
 
 class TestWebsocketConnection:
@@ -124,30 +133,35 @@ class TestWebsocketConnection:
         self.response_data = bytearray()
         self.scope = scope
         self.status_code: int | None = None
-        self._send_queue: asyncio.Queue = asyncio.Queue()
-        self._receive_queue: asyncio.Queue = asyncio.Queue()
-        self._task: Awaitable[None] = None
+        self._server_send, self._server_receive = (
+            create_memory_object_stream[dict](10))
+        self._client_send, self._client_receive = (
+            create_memory_object_stream[bytes | Exception](10))
+        self._tg_cm: AbstractAsyncContextManager[TaskGroup]
 
     async def __aenter__(self) -> TestWebsocketConnection:
-        self._task = asyncio.ensure_future(
-            self.app(self.scope, self._asgi_receive, self._asgi_send)
-        )
+        self._tg_cm = create_task_group()
+        tg_entered = await self._tg_cm.__aenter__()
+        tg_entered.start_soon(
+            self.app, self.scope, self._asgi_receive, self._asgi_send
+            )
         return self
 
-    async def __aexit__(
-        self, exc_type: type, exc_value: BaseException, tb: TracebackType
-    ) -> None:
-        await self.disconnect()
-        await self._task
-        while not self._receive_queue.empty():
-            data = await self._receive_queue.get()
-            if isinstance(data, Exception) and not isinstance(
-                data, WebsocketDisconnectError
-            ):
-                raise data
+    async def __aexit__(self, exc_type, exc_value, tb) -> None:
+        try:
+            await self.disconnect()
+        except ClosedResourceError:
+            pass
+        try:
+            await self._tg_cm.__aexit__(None, None, None)
+        finally:
+            await self._client_send.aclose()
+            await self._client_receive.aclose()
+            await self._server_receive.aclose()
+
 
     async def receive(self) -> AnyStr:
-        data = await self._receive_queue.get()
+        data = await self._client_receive.receive()
         if isinstance(data, Exception):
             raise data
         else:
@@ -155,9 +169,9 @@ class TestWebsocketConnection:
 
     async def send(self, data: AnyStr) -> None:
         if isinstance(data, str):
-            await self._send_queue.put({"type": "websocket.receive", "text": data})
+            await self._server_send.send({"type": "websocket.receive", "text": data})
         else:
-            await self._send_queue.put({"type": "websocket.receive", "bytes": data})
+            await self._server_send.send({"type": "websocket.receive", "bytes": data})
 
     async def receive_json(self) -> Any:
         data = await self.receive()
@@ -168,33 +182,37 @@ class TestWebsocketConnection:
         await self.send(raw)
 
     async def close(self, code: int) -> None:
-        await self._send_queue.put({"type": "websocket.close", "code": code})
+        await self._server_send.send({"type": "websocket.close", "code": code})
 
     async def disconnect(self) -> None:
-        await self._send_queue.put({"type": "websocket.disconnect"})
+        await self._server_send.send({"type": "websocket.disconnect"})
+        await self._server_send.aclose()
 
     async def _asgi_receive(self) -> ASGIReceiveEvent:
-        return await self._send_queue.get()
+        return await self._server_receive.receive()
 
     async def _asgi_send(self, message: ASGISendEvent) -> None:
         if message["type"] == "websocket.accept":
             self.accepted = True
         elif message["type"] == "websocket.send":
-            await self._receive_queue.put(message.get("bytes") or message.get("text"))
+            await self._client_send.send(message.get("bytes") or message.get("text"))
         elif message["type"] == "websocket.http.response.start":
             self.headers = decode_headers(message["headers"])
             self.status_code = message["status"]
         elif message["type"] == "websocket.http.response.body":
             self.response_data.extend(message["body"])
             if not message.get("more_body", False):
-                await self._receive_queue.put(
+                await self._client_send.send(
                     WebsocketResponseError(
                         self.app.response_class(
                             bytes(self.response_data), self.status_code, self.headers
                         )
                     )
                 )
+                await self._client_send.aclose()
+
         elif message["type"] == "websocket.close":
-            await self._receive_queue.put(
+            await self._client_send.send(
                 WebsocketDisconnectError(message.get("code", 1000))
             )
+            await self._client_send.aclose()

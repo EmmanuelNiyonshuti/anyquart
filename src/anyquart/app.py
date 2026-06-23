@@ -10,6 +10,7 @@ from collections.abc import AsyncGenerator
 from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Coroutine
+from contextlib import AbstractAsyncContextManager
 from datetime import timedelta
 from inspect import isasyncgen
 from inspect import iscoroutinefunction as _inspect_iscoroutinefunction
@@ -19,22 +20,28 @@ from typing import Any
 from typing import AnyStr
 from typing import cast
 from typing import NoReturn
-from typing import Optional
 from typing import overload
 from typing import ParamSpec
 from typing import TypeVar
 from urllib.parse import quote
 
-import anyio
+from anycorn import serve
+from anycorn.config import Config as HyperConfig
+from anycorn.typing import ASGIReceiveCallable
+from anycorn.typing import ASGISendCallable
+from anycorn.typing import Scope
 from anyio import AsyncFile
+from anyio import create_task_group
+from anyio import current_time
+from anyio import Event
+from anyio import Lock
 from anyio import open_file as async_open
+from anyio import open_signal_receiver
+from anyio import run
+from anyio import sleep
+from anyio.abc import TaskGroup
 from flask.sansio.app import App
 from flask.sansio.scaffold import setupmethod
-from hypercorn.asyncio import serve
-from hypercorn.config import Config as HyperConfig
-from hypercorn.typing import ASGIReceiveCallable
-from hypercorn.typing import ASGISendCallable
-from hypercorn.typing import Scope
 from werkzeug.datastructures import Authorization
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import ImmutableDict
@@ -101,7 +108,6 @@ from .typing import ASGILifespanProtocol
 from .typing import ASGIWebsocketProtocol
 from .typing import BeforeServingCallable
 from .typing import BeforeWebsocketCallable
-from .typing import Event
 from .typing import FilePath
 from .typing import HeadersValue
 from .typing import ResponseReturnValue
@@ -116,7 +122,6 @@ from .typing import TestAppProtocol
 from .typing import TestClientProtocol
 from .typing import WebsocketCallable
 from .typing import WhileServingCallable
-from .utils import cancel_tasks
 from .utils import file_path_to_path
 from .utils import MustReloadError
 from .utils import observe_changes
@@ -222,9 +227,9 @@ class AnyQuart(App):
     asgi_lifespan_class = ASGILifespan
     asgi_websocket_class = ASGIWebsocketConnection
     config_class = Config
-    event_class = anyio.Event
+    event_class = Event
     jinja_environment = Environment  # type: ignore[assignment]
-    lock_class = anyio.Lock
+    lock_class = Lock
     request_class = Request
     response_class = Response
     session_interface = SecureCookieSessionInterface()
@@ -329,7 +334,8 @@ class AnyQuart(App):
         self.after_websocket_funcs: dict[
             AppOrBlueprintKey, list[AfterWebsocketCallable]
         ] = defaultdict(list)
-        self.background_tasks: set[anyio.TaskHandle] = set()
+        self.background_tg_cm: AbstractAsyncContextManager[TaskGroup] | None = None
+        self.background_tasks_tg: TaskGroup | None = None
         self.before_serving_funcs: list[Callable[[], Awaitable[None]]] = []
         self.before_serving_funcs: list[Callable[[], Awaitable[None]]] = []
         self.before_websocket_funcs: dict[
@@ -774,13 +780,13 @@ class AnyQuart(App):
             context.update(processor())
         return context
 
+
     def run(
         self,
         host: str | None = None,
         port: int | None = None,
         debug: bool | None = None,
         use_reloader: bool = True,
-        loop: asyncio.AbstractEventLoop | None = None,
         ca_certs: str | None = None,
         certfile: str | None = None,
         keyfile: str | None = None,
@@ -797,9 +803,6 @@ class AnyQuart(App):
             port: Port number to listen on.
             debug: If set enable (or disable) debug mode and debug output.
             use_reloader: Automatically reload on code changes.
-            loop: Asyncio loop to create the server in, if None, take default one.
-                If specified it is the caller's responsibility to close and cleanup the
-                loop.
             ca_certs: Path to the SSL CA certificate file.
             certfile: Path to the SSL certificate file.
             keyfile: Path to the SSL key file.
@@ -807,87 +810,77 @@ class AnyQuart(App):
         if kwargs:
             warnings.warn(
                 f"Additional arguments, {','.join(kwargs.keys())}, are not supported.\n"
-                "They may be supported by Hypercorn, which is the ASGI server anyquart "
+                "They may be supported by Anycorn, which is the ASGI server AnyQuart "
                 "uses by default. This method is meant for development and debugging.",
                 stacklevel=2,
             )
 
-        if loop is None:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
-        if "anyquart_DEBUG" in os.environ:
+        if "ANYQUART_DEBUG" in os.environ:
             self.debug = get_debug_flag()
 
         if debug is not None:
             self.debug = debug
 
-        loop.set_debug(self.debug)
-
-        shutdown_event = asyncio.Event()
-
-        def _signal_handler(*_: Any) -> None:
-            shutdown_event.set()
-
-        for signal_name in {"SIGINT", "SIGTERM", "SIGBREAK"}:
-            if hasattr(signal, signal_name):
-                try:
-                    loop.add_signal_handler(
-                        getattr(signal, signal_name), _signal_handler
-                    )
-                except NotImplementedError:
-                    # Add signal handler may not be implemented on Windows
-                    signal.signal(getattr(signal, signal_name), _signal_handler)
-
-        server_name = self.config.get("SERVER_NAME")
-        sn_host = None
-        sn_port = None
-        if server_name is not None:
-            sn_host, _, sn_port = server_name.partition(":")
-
+        scheme = "https" if certfile is not None and keyfile is not None else "http"
         if host is None:
-            host = sn_host or "127.0.0.1"
-
+            server_name = self.config.get("SERVER_NAME")
+            host = (server_name.partition(":")[0] if server_name else None) or "127.0.0.1"
         if port is None:
+            server_name = self.config.get("SERVER_NAME")
+            sn_port = server_name.partition(":")[2] if server_name else None
             port = int(sn_port or "5000")
 
-        task = self.run_task(
-            host,
-            port,
-            debug,
-            ca_certs,
-            certfile,
-            keyfile,
-            shutdown_trigger=shutdown_event.wait,  # type: ignore
-        )
-        print(f" * Serving AnyQuart app '{self.name}'")  # noqa: T201
-        print(f" * Debug mode: {self.debug or False}")  # noqa: T201
-        print(" * Please use an ASGI server (e.g. Hypercorn) directly in production")  # noqa: T201
-        scheme = "https" if certfile is not None and keyfile is not None else "http"
-        print(f" * Running on {scheme}://{host}:{port} (CTRL + C to quit)")  # noqa: T201
-
-        tasks = [loop.create_task(task)]
-
-        if use_reloader:
-            tasks.append(
-                loop.create_task(observe_changes(asyncio.sleep, shutdown_event))
-            )
+        print(f" * Serving AnyQuart app '{self.name}'")
+        print(f" * Debug mode: {self.debug or False}")
+        print(" * Please use an ASGI server (e.g. Hypercorn) directly in production")
+        print(f" * Running on {scheme}://{host}:{port} (CTRL + C to quit)")
 
         reload_ = False
         try:
-            loop.run_until_complete(asyncio.gather(*tasks))
+            run(
+                self._run_serve,
+                host,
+                port,
+                debug,
+                ca_certs,
+                certfile,
+                keyfile,
+                use_reloader)
         except MustReloadError:
             reload_ = True
-        finally:
-            try:
-                _cancel_all_tasks(loop)
-                loop.run_until_complete(loop.shutdown_asyncgens())
-            finally:
-                asyncio.set_event_loop(None)
-                loop.close()
 
         if reload_:
             restart()
+
+    async def _run_serve(
+        self,
+        host: str,
+        port: int,
+        debug: bool | None,
+        ca_certs: str | None,
+        certfile: str | None,
+        keyfile: str | None,
+        use_reloader: bool,
+    ) -> None:
+        shutdown_event = Event()
+
+        async def watch_signals() -> None:
+            with open_signal_receiver(signal.SIGINT, signal.SIGTERM) as signals:
+                async for _ in signals:
+                    shutdown_event.set()
+                    return
+
+        try:
+            async with create_task_group() as tg:
+                tg.start_soon(watch_signals)
+                tg.start_soon(
+                    self.run_task, host, port, debug, ca_certs, certfile, keyfile,
+                    shutdown_event.wait
+                )
+                if use_reloader:
+                    tg.start_soon(observe_changes, sleep, shutdown_event)
+        except MustReloadError:
+            raise
 
     def run_task(
         self,
@@ -898,7 +891,7 @@ class AnyQuart(App):
         certfile: str | None = None,
         keyfile: str | None = None,
         shutdown_trigger: Callable[..., Awaitable[None]] | None = None,
-    ) -> Coroutine[None, None, None]:
+        ) -> Coroutine[None, None, None]:
         """Return a task that when awaited runs this application.
 
         This is best used for development only, see Hypercorn for
@@ -1368,6 +1361,10 @@ class AnyQuart(App):
         return self.request_context(request)
 
     def add_background_task(self, func: Callable, *args: Any, **kwargs: Any) -> None:
+        if self.background_tasks_tg is None:
+            raise RuntimeError(
+                "Can not add background tasks before the app has started."
+            )
         async def _wrapper() -> None:
             try:
                 async with self.app_context():
@@ -1375,9 +1372,7 @@ class AnyQuart(App):
             except Exception as error:
                 await self.handle_background_exception(error)
 
-        task = asyncio.get_event_loop().create_task(_wrapper())
-        self.background_tasks.add(task)
-        task.add_done_callback(self.background_tasks.discard)
+        self.background_tasks_tg.start_soon(_wrapper)
 
     async def handle_background_exception(self, error: Exception) -> None:
         await got_background_exception.send_async(
@@ -1462,8 +1457,6 @@ class AnyQuart(App):
         async with self.request_context(request) as request_context:
             try:
                 return await self.full_dispatch_request(request_context)
-            except asyncio.CancelledError:
-                raise  # CancelledErrors should be handled by serving code.
             except Exception as error:
                 return await self.handle_exception(error)
             finally:
@@ -1474,8 +1467,7 @@ class AnyQuart(App):
         async with self.websocket_context(websocket) as websocket_context:
             try:
                 return await self.full_dispatch_websocket(websocket_context)
-            except asyncio.CancelledError:
-                raise  # CancelledErrors should be handled by serving code.
+
             except Exception as error:
                 return await self.handle_websocket_exception(error)
             finally:
@@ -1762,6 +1754,8 @@ class AnyQuart(App):
 
     async def startup(self) -> None:
         self.shutdown_event = self.event_class()
+        self.background_tg_cm = create_task_group()
+        self.background_tasks_tg = await self.background_tg_cm.__aenter__()
         try:
             async with self.app_context():
                 for func in self.before_serving_funcs:
@@ -1779,13 +1773,12 @@ class AnyQuart(App):
 
     async def shutdown(self) -> None:
         self.shutdown_event.set()
-        try:
-            await asyncio.wait_for(
-                asyncio.gather(*self.background_tasks),
-                timeout=self.config["BACKGROUND_TASK_SHUTDOWN_TIMEOUT"],
-            )
-        except asyncio.TimeoutError:
-            await cancel_tasks(self.background_tasks)
+
+        self.background_tasks_tg.cancel_scope.deadline = (
+            current_time() + self.config["BACKGROUND_TASK_SHUTDOWN_TIMEOUT"]
+        )
+        await self.background_tg_cm.__aexit__(None, None, None)
+        self.background_tasks_tg = None
 
         try:
             async with self.app_context():
@@ -1807,22 +1800,3 @@ class AnyQuart(App):
             self.log_exception(sys.exc_info())
             raise
 
-
-def _cancel_all_tasks(loop: asyncio.AbstractEventLoop) -> None:
-    tasks = [task for task in asyncio.all_tasks(loop) if not task.done()]
-    if not tasks:
-        return
-
-    for task in tasks:
-        task.cancel()
-    loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
-
-    for task in tasks:
-        if not task.cancelled() and task.exception() is not None:
-            loop.call_exception_handler(
-                {
-                    "message": "unhandled exception during shutdown",
-                    "exception": task.exception(),
-                    "task": task,
-                }
-            )

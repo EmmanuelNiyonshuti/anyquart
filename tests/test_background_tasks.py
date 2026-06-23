@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import asyncio
 import time
 
 import pytest
+from anyio import sleep
 
 from anyquart import AnyQuart
 from anyquart import current_app
@@ -18,7 +18,7 @@ async def test_background_task() -> None:
 
     async def background() -> None:
         nonlocal data
-        await asyncio.sleep(0.5)
+        await sleep(0.5)
         data = current_app.config["DATA"]
 
     @app.route("/")
@@ -42,7 +42,7 @@ async def test_lifespan_background_task() -> None:
 
     async def background() -> None:
         nonlocal data
-        await asyncio.sleep(0.5)
+        await sleep(0.5)
         data = current_app.config["DATA"]
 
     @app.before_serving

@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 import pytest
-from hypercorn.typing import HTTPScope
-from hypercorn.typing import WebsocketScope
+from anycorn.typing import HTTPScope
+from anycorn.typing import WebsocketScope
 
 
 @pytest.fixture(
     params=[
         pytest.param("asyncio", id="asyncio"),
-        pytest.param(
-            "trio", id="trio", marks=pytest.mark.skip(reason="trio support WIP")
-        ),
+        pytest.param("trio", id="trio"),
     ]
 )
 async def anyio_backend(request: pytest.FixtureRequest) -> None:
@@ -30,9 +28,9 @@ def _http_scope() -> HTTPScope:
         "query_string": b"a=b",
         "root_path": "",
         "headers": [
-            (b"User-Agent", b"Hypercorn"),
-            (b"X-Hypercorn", b"Hypercorn"),
-            (b"Referer", b"hypercorn"),
+            (b"User-Agent", b"Anycorn"),
+            (b"X-Anycorn", b"Anycorn"),
+            (b"Referer", b"anycorn"),
         ],
         "client": ("127.0.0.1", 80),
         "server": None,
@@ -53,9 +51,9 @@ def _websocket_scope() -> WebsocketScope:
         "query_string": b"a=b",
         "root_path": "",
         "headers": [
-            (b"User-Agent", b"Hypercorn"),
-            (b"X-Hypercorn", b"Hypercorn"),
-            (b"Referer", b"hypercorn"),
+            (b"User-Agent", b"Anycorn"),
+            (b"X-Anycorn", b"Anycorn"),
+            (b"Referer", b"anycorn"),
         ],
         "client": ("127.0.0.1", 80),
         "server": None,

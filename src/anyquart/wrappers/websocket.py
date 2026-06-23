@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Callable
 from typing import Any
 from typing import AnyStr
 
-from hypercorn.typing import WebsocketScope
+from anycorn.typing import WebsocketScope
+from anyio import sleep
 from werkzeug.datastructures import Headers
 
 from .base import BaseRequestWebsocket
@@ -63,7 +63,7 @@ class Websocket(BaseRequestWebsocket):
         # Must allow for the event loop to act if the user has say
         # setup a tight loop sending data over a websocket (as in the
         # example). So yield via the sleep.
-        await asyncio.sleep(0)
+        await sleep(0)
         await self.accept()
         await self._send(data)
 

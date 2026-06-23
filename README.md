@@ -1,30 +1,26 @@
-<div align="center"><img src="https://raw.githubusercontent.com/pallets/quart/refs/heads/main/docs/_static/quart-name.svg" alt="" height="150"></div>
+# AnyQuart
 
-# Quart
+Quart runs on Asyncio and when you want to run it on Trio event loop you use [quart-trio](https://github.com/pgjones/quart-trio) extension.
 
-Quart is an async Python web application framework. Using Quart you can,
+AnyQuart is [Quart](https://github.com/pallets/quart) running on [AnyIO](https://github.com/agronholm/anyio). It is a fork of Quart 0.20.1.
 
-- render and serve HTML templates,
-- write (RESTful) JSON APIs,
-- serve WebSockets,
-- stream request and response data,
-- do pretty much anything over the HTTP or WebSocket protocols.
+All credit for Quart goes to the [Pallets](https://palletsprojects.com) team.
 
-## Quickstart
+## Usage
+You will have to replace `quart` with `anyquart` and `Quart` with `AnyQuart`.
 
-Install from PyPI using an installer such as pip.
+Install from PyPI using an installer such as pip. Requires Python 3.10+.
 
 ```
-$ pip install quart
+$ pip install anyquart
 ```
 
-Save the following as `app.py`. This shows off rendering a template, returning
-JSON data, and using a WebSocket.
+Save the following as `app.py`.
 
 ```python
-from quart import Quart, render_template, websocket
+from anyquart import AnyQuart, websocket, render_template
 
-app = Quart(__name__)
+app = AnyQuart(__name__)
 
 @app.route("/")
 async def hello():
@@ -42,49 +38,40 @@ async def ws():
 ```
 
 ```
-$ quart run
+$ anyquart run
  * Running on http://127.0.0.1:5000 (CTRL + C to quit)
 ```
 
-To deploy this app in a production setting see the [deployment] documentation.
+# Testing
+Pytest does not natively support async test functions hence we need an async framework for async tests and fixtures.
+Quart uses pytest-asyncio, here we use AnyIO's pytest plugin. You will need to specify which backend your tests run on via the `anyio_backend` fixture and decorate your asynchronous tests with `@pytest.mark.anyio`.
 
-[deployment]: https://quart.palletsprojects.com/en/latest/tutorials/deployment.html
+```python
+import pytest
 
-## Contributing
+from app import app
 
-Quart is developed on [GitHub]. If you come across a bug, or have a feature
-request, please open an [issue]. To contribute a fix or implement a feature,
-follow our [contributing guide].
+@pytest.fixture()
+def anyio_backend():
+    return "trio" # you can replace with "asyncio"
 
-[GitHub]: https://github.com/pallets/quart
-[issue]: https://github.com/pallets/quart/issues
-[contributing guide]: https://github.com/pallets/quart/CONTRIBUTING.rst
+@pytest.fixture()
+def test_client():
+    return app.test_client()
 
-## Help
+@pytest.mark.anyio
+async def test_do_something(test_client) -> None:
+    response = await test_client.get("/")
+    assert response.status_code == 200
+    assert await response.json == {"hello": "world"}
 
-If you need help with your code, the Quart [documentation] and [cheatsheet] are
-the best places to start. You can ask for help on the [Discussions tab] or on
-our [Discord chat].
+```
 
-[documentation]: https://quart.palletsprojects.com
-[cheatsheet]: https://quart.palletsprojects.com/en/latest/reference/cheatsheet.html
-[Discussions tab]: https://github.com/pallets/quart/discussions
-[Discord chat]: https://discord.gg
+## Differences from Quart
+- Uses [Anycorn](https://github.com/davidbrochart/anycorn) instead of Hypercorn as the development server
+- Works with both asyncio and Trio via AnyIO
+- Uses AnyIO's file I/O instead of aiofiles
+- AnyIO primitives work freely in route handlers, giving you structured concurrency out of the box
+- Tests need `@pytest.mark.anyio` and the `anyio_backend` fixture instead of pytest-asyncio
 
-## Relationship with Flask
-
-Quart is an asyncio reimplementation of the popular [Flask] web application
-framework. This means that if you understand Flask you understand Quart.
-
-Like Flask, Quart has an ecosystem of extensions for more specific needs. In
-addition, a number of the Flask extensions work with Quart.
-
-[Flask]: https://flask.palletsprojects.com
-
-### Migrating from Flask
-
-It should be possible to migrate to Quart from Flask by a find and replace of
-`flask` to `quart` and then adding `async` and `await` keywords. See the
-[migration] documentation for more help.
-
-[migration]: https://quart.palletsprojects.com/en/latest/how_to_guides/flask_migration.html
+Refer to the [Quart documentation](https://quart.palletsprojects.com) for more details.

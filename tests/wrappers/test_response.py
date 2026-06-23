@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from collections.abc import Generator
 from datetime import datetime
 from datetime import timezone
 from http import HTTPStatus
@@ -9,6 +10,11 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from hypothesis import given
+from hypothesis import strategies as strategies
+from werkzeug.datastructures import Headers
+from werkzeug.exceptions import RequestedRangeNotSatisfiable
+
 from anyquart.testing import no_op_push
 from anyquart.typing import HTTPScope
 from anyquart.wrappers import Request
@@ -17,10 +23,6 @@ from anyquart.wrappers.response import FileBody
 from anyquart.wrappers.response import IOBody
 from anyquart.wrappers.response import IterableBody
 from anyquart.wrappers.response import Response
-from hypothesis import given
-from hypothesis import strategies as strategies
-from werkzeug.datastructures import Headers
-from werkzeug.exceptions import RequestedRangeNotSatisfiable
 
 
 @pytest.mark.anyio
@@ -33,17 +35,21 @@ async def test_data_wrapper() -> None:
     assert results == [b"abcdef"]
 
 
-async def _simple_async_generator() -> AsyncGenerator[bytes, None]:
+def _sync_gen() -> Generator[bytes]:
+    return (data for data in [b"abc", b"def"])
+
+async def _async_gen() -> AsyncGenerator[bytes, None]:
     yield b"abc"
     yield b"def"
 
 
 @pytest.mark.parametrize(
-    "iterable",
-    [[b"abc", b"def"], (data for data in [b"abc", b"def"]), _simple_async_generator()],
+    "iterable_factory",
+    [lambda: [b"abc", b"def"], _sync_gen, _async_gen],
 )
 @pytest.mark.anyio
-async def test_iterable_wrapper(iterable: Any) -> None:
+async def test_iterable_wrapper(iterable_factory: Any) -> None:
+    iterable = iterable_factory()
     wrapper = IterableBody(iterable)
     results = []
     async with wrapper as response:

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Generator
@@ -9,7 +8,10 @@ from typing import Literal
 from typing import NoReturn
 from typing import overload
 
-from hypercorn.typing import HTTPScope
+from anycorn.typing import HTTPScope
+from anyio import Event
+from anyio import fail_after
+from anyio import Lock
 from werkzeug.datastructures import CombinedMultiDict
 from werkzeug.datastructures import Headers
 from werkzeug.datastructures import iter_multi_items
@@ -53,8 +55,8 @@ class Body:
         self, expected_content_length: int | None, max_content_length: int | None
     ) -> None:
         self._data = bytearray()
-        self._complete: asyncio.Event = asyncio.Event()
-        self._has_data: asyncio.Event = asyncio.Event()
+        self._complete: Event = Event()
+        self._has_data: Event = Event()
         self._max_content_length = max_content_length
         # Exceptions must be raised within application (not ASGI)
         # calls, this is achieved by having the ASGI methods set this
@@ -85,7 +87,6 @@ class Body:
 
         data = bytes(self._data)
         self._data.clear()
-        self._has_data.clear()
         return data
 
     def __await__(self) -> Generator[Any, None, Any]:
@@ -141,7 +142,7 @@ class Request(BaseRequestWebsocket):
 
     body_class = Body
     form_data_parser_class = FormDataParser
-    lock_class = asyncio.Lock
+    lock_class = Lock
     _max_content_length: int | None = None
     _max_form_memory_size: int | None = None
     _max_form_parts: int | None = None
@@ -276,8 +277,9 @@ class Request(BaseRequestWebsocket):
             await self._load_form_data()
 
         try:
-            raw_data = await asyncio.wait_for(self.body, timeout=self.body_timeout)
-        except asyncio.TimeoutError as e:
+            with fail_after(self.body_timeout):
+                raw_data = await self.body
+        except TimeoutError as e:
             raise RequestTimeout() from e
         else:
             if not cache:
@@ -340,16 +342,14 @@ class Request(BaseRequestWebsocket):
             if self._form is None:
                 parser = self.make_form_data_parser()
                 try:
-                    self._form, self._files = await asyncio.wait_for(
-                        parser.parse(
+                    with fail_after(self.body_timeout):
+                        self._form, self._files = await parser.parse(
                             self.body,
                             self.mimetype,
                             self.content_length,
                             self.mimetype_params,
-                        ),
-                        timeout=self.body_timeout,
-                    )
-                except asyncio.TimeoutError as e:
+                        )
+                except TimeoutError as e:
                     raise RequestTimeout() from e
 
     @property

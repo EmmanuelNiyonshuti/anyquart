@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import asyncio
-
+import anyio
 import pytest
+
 from anyquart import AnyQuart
 from anyquart import Blueprint
 from anyquart import g
@@ -57,7 +57,7 @@ async def test_default_template_context(app: AnyQuart) -> None:
 async def test_template_context_processors(app: AnyQuart, blueprint: Blueprint) -> None:
     @blueprint.context_processor
     async def blueprint_context() -> dict:
-        await asyncio.sleep(0.01)  # Test the ability to await
+        await anyio.sleep(0.01)  # Test the ability to await
         return {"context": "foo"}
 
     @blueprint.app_context_processor

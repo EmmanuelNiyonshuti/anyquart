@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING
 from urllib.parse import unquote
 from urllib.parse import urlencode
 
-from hypercorn.typing import HTTPScope
-from hypercorn.typing import Scope
-from hypercorn.typing import WebsocketScope
+from anycorn.typing import HTTPScope
+from anycorn.typing import Scope
+from anycorn.typing import WebsocketScope
 from werkzeug.datastructures import Authorization
 from werkzeug.datastructures import Headers
 from werkzeug.sansio.multipart import Data

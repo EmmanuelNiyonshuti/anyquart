@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import ast
-import asyncio
 import code
 import functools
 import inspect
@@ -18,6 +17,7 @@ from types import ModuleType
 from typing import Any
 from typing import TYPE_CHECKING
 
+import anyio
 import click
 from click.core import ParameterSource
 
@@ -302,7 +302,7 @@ def with_appcontext(fn: Callable | None = None) -> Callable:
                         )
                     raise
 
-        return asyncio.run(_inner())
+        return anyio.run(_inner())
 
     return functools.update_wrapper(decorator, fn)
 

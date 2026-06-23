@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-import asyncio
 from urllib.parse import urlencode
 
+import anyio
 import pytest
-from hypercorn.typing import HTTPScope
+from anycorn.typing import HTTPScope
+from anyio import create_task_group
+from anyio import fail_after
+from anyio import Semaphore
 from werkzeug.datastructures import Headers
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.exceptions import RequestTimeout
@@ -14,10 +17,12 @@ from anyquart.wrappers.request import Body
 from anyquart.wrappers.request import Request
 
 
-async def _fill_body(body: Body, semaphore: asyncio.Semaphore, limit: int) -> None:
+async def _fill_body(body: Body, semaphore: Semaphore, limit: int) -> None:
     for number in range(limit):
         body.append(b"%d" % number)
+
         await semaphore.acquire()
+
     body.set_complete()
 
 
@@ -25,8 +30,9 @@ async def _fill_body(body: Body, semaphore: asyncio.Semaphore, limit: int) -> No
 async def test_full_body() -> None:
     body = Body(None, None)
     limit = 3
-    semaphore = asyncio.Semaphore(limit)
-    asyncio.ensure_future(_fill_body(body, semaphore, limit))
+    semaphore = Semaphore(limit)
+    async with create_task_group() as tg:
+        tg.start_soon(_fill_body, body, semaphore, limit)
     assert b"012" == await body
 
 
@@ -34,13 +40,18 @@ async def test_full_body() -> None:
 async def test_body_streaming() -> None:
     body = Body(None, None)
     limit = 3
-    semaphore = asyncio.Semaphore(0)
-    asyncio.ensure_future(_fill_body(body, semaphore, limit))
-    index = 0
-    async for data in body:
-        semaphore.release()
-        assert data == b"%d" % index
-        index += 1
+    semaphore = Semaphore(0)
+    async with create_task_group() as tg:
+        tg.start_soon(_fill_body, body, semaphore, limit)
+
+        index = 0
+        async for data in body:
+            semaphore.release()
+            await anyio.sleep(0)
+            assert data == b"%d" % index
+
+            index += 1
+
     assert b"" == await body
 
 
@@ -54,16 +65,20 @@ async def test_body_stream_single_chunk() -> None:
         async for data in body:
             assert data == b"data"
 
-    await asyncio.wait_for(_check_data(), 1)
+    with fail_after(1):
+        await _check_data()
 
 
 @pytest.mark.anyio
 async def test_body_streaming_no_data() -> None:
     body = Body(None, None)
-    semaphore = asyncio.Semaphore(0)
-    asyncio.ensure_future(_fill_body(body, semaphore, 0))
-    async for _ in body:  # noqa: F841
-        raise AssertionError("Should not reach this line")
+    semaphore = Semaphore(0)
+
+    async with create_task_group() as tg:
+        tg.start_soon(_fill_body, body, semaphore, 0)
+
+        async for _ in body:  # noqa: F841
+            raise AssertionError("Should not reach this line")
     assert b"" == await body
 
 

@@ -5,7 +5,8 @@ from typing import cast
 from unittest.mock import Mock
 
 import pytest
-from hypercorn.typing import HTTPScope
+from anycorn.typing import HTTPScope
+from anyio import create_task_group
 from werkzeug.datastructures import Headers
 from werkzeug.exceptions import BadRequest
 
@@ -134,7 +135,8 @@ async def test_copy_current_app_context() -> None:
         async def within_context() -> None:
             assert g.foo == "bar"
 
-        await asyncio.ensure_future(within_context())
+        async with create_task_group() as tg:
+            tg.start_soon(within_context)
         return ""
 
     test_client = app.test_client()
@@ -157,7 +159,8 @@ async def test_copy_current_request_context() -> None:
         async def within_context() -> None:
             assert request.path == "/"
 
-        await asyncio.ensure_future(within_context())
+        async with create_task_group() as tg:
+            tg.start_soon(within_context)
         return ""
 
     test_client = app.test_client()
@@ -179,7 +182,8 @@ async def test_works_without_copy_current_request_context() -> None:
         async def within_context() -> None:
             assert request.path == "/"
 
-        await asyncio.ensure_future(within_context())
+        async with create_task_group() as tg:
+            tg.start_soon(within_context)
         return ""
 
     test_client = app.test_client()
@@ -197,8 +201,9 @@ async def test_copy_current_websocket_context() -> None:
         async def within_context() -> str:
             return websocket.path
 
-        data = await asyncio.ensure_future(within_context())
-        await websocket.send(data.encode())
+        async with create_task_group() as tg:
+            task_handle = tg.start_soon(within_context)
+        await websocket.send(task_handle.return_value.encode())
 
     test_client = app.test_client()
     async with test_client.websocket("/") as test_websocket:

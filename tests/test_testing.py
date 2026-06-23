@@ -371,8 +371,8 @@ async def test_websocket_bad_request() -> None:
 
     test_client = app.test_client()
     with pytest.raises(WebsocketResponseError):
-        async with test_client.websocket("/"):
-            pass
+        async with test_client.websocket("/") as ws:
+            await ws.receive()
 
 
 @pytest.mark.anyio

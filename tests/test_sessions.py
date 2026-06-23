@@ -3,7 +3,7 @@ from __future__ import annotations
 from http.cookies import SimpleCookie
 
 import pytest
-from hypercorn.typing import HTTPScope
+from anycorn.typing import HTTPScope
 from werkzeug.datastructures import Headers
 
 from anyquart.app import AnyQuart

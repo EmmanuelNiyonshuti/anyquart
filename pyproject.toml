@@ -24,7 +24,7 @@ dependencies = [
     "blinker>=1.6",
     "click>=8.0",
     "flask>=3.0",
-    "hypercorn>=0.11.2",
+    "anycorn>=0.11.2",
     "importlib-metadata; python_version < '3.13'",
     "itsdangerous",
     "jinja2",
@@ -158,7 +158,7 @@ order-by-type = false
 
 [tool.tox]
 env_list = [
-    "py3.13", "py3.12", "py3.11", "py3.10",
+    "py3.14", "py3.13", "py3.12", "py3.11", "py3.10",
     "style",
     "typing",
     "docs",
@@ -190,17 +190,6 @@ commands = [
     ["mypy"],
 ]
 
-[tool.tox.env.docs]
-description = "build docs"
-dependency_groups = ["docs"]
-# TODO fix warnings and add -W
-commands = [["sphinx-build", "-E", "-b", "dirhtml", "docs", "docs/_build/dirhtml"]]
-
-[tool.tox.env.docs-auto]
-description = "continuously rebuild docs and start a local server"
-dependency_groups = ["docs", "docs-auto"]
-# TODO fix warnings and add -W
-commands = [["sphinx-autobuild", "-b", "dirhtml", "--watch", "src", "docs", "docs/_build/dirhtml"]]
 
 [tool.tox.env.update-actions]
 description = "update GitHub Actions pins"
