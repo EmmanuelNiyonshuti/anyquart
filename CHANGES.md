@@ -1,3 +1,17 @@
+## AnyQuart 0.1.0
+
+Released 2026-06-24
+
+- Fork of Quart 0.20.1, ported to run on AnyIO
+- Works with both asyncio and Trio via AnyIO
+- Uses Anycorn instead of Hypercorn as the development server
+- Drops aiofiles and pytest-asyncio
+
+---
+
+*The following is the changelog from [Quart](https://github.com/pallets/quart), from which AnyQuart was forked.*
+
+
 ## Version 0.20.1
 
 Unreleased
