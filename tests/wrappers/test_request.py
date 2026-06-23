@@ -144,7 +144,10 @@ async def test_request_values(
         "/",
         b"a=b&a=c",
         Headers(
-            {"host": "anyquart.com", "Content-Type": "application/x-www-form-urlencoded"}
+            {
+                "host": "anyquart.com",
+                "Content-Type": "application/x-www-form-urlencoded",
+            }
         ),
         "",
         "1.1",
@@ -185,7 +188,11 @@ async def test_request_send_push_promise(http_scope: HTTPScope) -> None:
     )
     await request.send_push_promise("/")
     assert push_promise[0] == "/"
-    valid_headers = {"Accept": "*/*", "Accept-Encoding": "gzip", "User-Agent": "anyquart"}
+    valid_headers = {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip",
+        "User-Agent": "anyquart",
+    }
     assert len(push_promise[1]) == len(valid_headers)
     for name, value in valid_headers.items():
         assert push_promise[1][name] == value

@@ -780,7 +780,6 @@ class AnyQuart(App):
             context.update(processor())
         return context
 
-
     def run(
         self,
         host: str | None = None,
@@ -824,7 +823,9 @@ class AnyQuart(App):
         scheme = "https" if certfile is not None and keyfile is not None else "http"
         if host is None:
             server_name = self.config.get("SERVER_NAME")
-            host = (server_name.partition(":")[0] if server_name else None) or "127.0.0.1"
+            host = (
+                server_name.partition(":")[0] if server_name else None
+            ) or "127.0.0.1"
         if port is None:
             server_name = self.config.get("SERVER_NAME")
             sn_port = server_name.partition(":")[2] if server_name else None
@@ -845,7 +846,8 @@ class AnyQuart(App):
                 ca_certs,
                 certfile,
                 keyfile,
-                use_reloader)
+                use_reloader,
+            )
         except MustReloadError:
             reload_ = True
 
@@ -874,8 +876,14 @@ class AnyQuart(App):
             async with create_task_group() as tg:
                 tg.start_soon(watch_signals)
                 tg.start_soon(
-                    self.run_task, host, port, debug, ca_certs, certfile, keyfile,
-                    shutdown_event.wait
+                    self.run_task,
+                    host,
+                    port,
+                    debug,
+                    ca_certs,
+                    certfile,
+                    keyfile,
+                    shutdown_event.wait,
                 )
                 if use_reloader:
                     tg.start_soon(observe_changes, sleep, shutdown_event)
@@ -891,7 +899,7 @@ class AnyQuart(App):
         certfile: str | None = None,
         keyfile: str | None = None,
         shutdown_trigger: Callable[..., Awaitable[None]] | None = None,
-        ) -> Coroutine[None, None, None]:
+    ) -> Coroutine[None, None, None]:
         """Return a task that when awaited runs this application.
 
         This is best used for development only, see Hypercorn for
@@ -1365,6 +1373,7 @@ class AnyQuart(App):
             raise RuntimeError(
                 "Can not add background tasks before the app has started."
             )
+
         async def _wrapper() -> None:
             try:
                 async with self.app_context():
@@ -1799,4 +1808,3 @@ class AnyQuart(App):
             )
             self.log_exception(sys.exc_info())
             raise
-

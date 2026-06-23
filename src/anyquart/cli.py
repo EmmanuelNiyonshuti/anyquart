@@ -72,7 +72,9 @@ def find_best_app(module: ModuleType) -> AnyQuart:
         if isinstance(app, AnyQuart):
             return app
 
-    matches = [value for value in module.__dict__.values() if isinstance(value, AnyQuart)]
+    matches = [
+        value for value in module.__dict__.values() if isinstance(value, AnyQuart)
+    ]
 
     if len(matches) == 1:
         return matches[0]

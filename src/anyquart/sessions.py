@@ -75,7 +75,9 @@ class SessionInterface:
         """Helper method to return the Cookie Samesite configuration for the App."""
         return app.config["SESSION_COOKIE_SAMESITE"]
 
-    def get_expiration_time(self, app: AnyQuart, session: SessionMixin) -> datetime | None:
+    def get_expiration_time(
+        self, app: AnyQuart, session: SessionMixin
+    ) -> datetime | None:
         """Helper method to return the Session expiration time.
 
         If the session is not 'permanent' it will expire as and when
