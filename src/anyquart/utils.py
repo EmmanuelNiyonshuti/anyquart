@@ -164,4 +164,3 @@ def restart() -> None:
         args[:0] = ["-m", import_name.lstrip(".")]
 
     os.execv(executable, [executable] + args)
-

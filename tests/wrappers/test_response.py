@@ -38,6 +38,7 @@ async def test_data_wrapper() -> None:
 def _sync_gen() -> Generator[bytes]:
     return (data for data in [b"abc", b"def"])
 
+
 async def _async_gen() -> AsyncGenerator[bytes, None]:
     yield b"abc"
     yield b"def"

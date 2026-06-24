@@ -37,9 +37,9 @@ class TestApp:
         self.shutdown_timeout = shutdown_timeout
         self._startup = Event()
         self._shutdown = Event()
-        self._app_send_stream, self._app_receive_stream = (
-            create_memory_object_stream[ASGIReceiveEvent](10)
-        )
+        self._app_send_stream, self._app_receive_stream = create_memory_object_stream[
+            ASGIReceiveEvent
+        ](10)
         self._tg_cm: AbstractAsyncContextManager[TaskGroup]
 
     def test_client(self) -> TestClientProtocol:
@@ -53,9 +53,7 @@ class TestApp:
             "asgi": {"spec_version": "2.0"},
             "state": {},
         }
-        entered_tg.start_soon(
-            self.app, scope, self._asgi_receive, self._asgi_send
-        )
+        entered_tg.start_soon(self.app, scope, self._asgi_receive, self._asgi_send)
         await self._app_send_stream.send({"type": "lifespan.startup"})
         with fail_after(self.startup_timeout):
             await self._startup.wait()

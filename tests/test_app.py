@@ -160,7 +160,6 @@ async def test_subdomain() -> None:
     assert (await response.get_data(as_text=True)) == "sub"
 
 
-
 @pytest.mark.parametrize(
     "result, expected, raises",
     [

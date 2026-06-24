@@ -57,13 +57,12 @@ class ASGIHTTPConnection:
             tg.start_soon(self.handle_messages, request, receive, tg)
             tg.start_soon(self.handle_request, request, send, tg)
 
-
     async def handle_messages(
         self,
         request: Request,
         receive: ASGIReceiveCallable,
-        tg: TaskGroup | None = None
-        ) -> None:
+        tg: TaskGroup | None = None,
+    ) -> None:
         while True:
             message = await receive()
             if message["type"] == "http.request":
@@ -108,11 +107,8 @@ class ASGIHTTPConnection:
         )
 
     async def handle_request(
-        self,
-        request: Request,
-        send: ASGISendCallable,
-        tg: TaskGroup | None = None
-        ) -> None:
+        self, request: Request, send: ASGISendCallable, tg: TaskGroup | None = None
+    ) -> None:
         response = await self.app.handle_request(request)
         if isinstance(response, Response) and response.timeout != Ellipsis:
             timeout = cast(float | None, response.timeout)
@@ -208,7 +204,7 @@ class ASGIWebsocketConnection:
         receive: ASGIReceiveCallable,
         send_stream: ObjectSendStream,
         tg: TaskGroup,
-        ) -> None:
+    ) -> None:
         try:
             while True:
                 event = await receive()
@@ -222,10 +218,8 @@ class ASGIWebsocketConnection:
             tg.cancel_scope.cancel()
 
     def _create_websocket_from_scope(
-        self,
-        send: ASGISendCallable,
-        receive_stream: ObjectReceiveStream
-        ) -> Websocket:
+        self, send: ASGISendCallable, receive_stream: ObjectReceiveStream
+    ) -> Websocket:
         headers = Headers()
         headers["Remote-Addr"] = (self.scope.get("client") or ["<local>"])[0]
         for name, value in self.scope["headers"]:
@@ -261,7 +255,7 @@ class ASGIWebsocketConnection:
         websocket: Websocket,
         send: ASGISendCallable,
         tg: TaskGroup,
-        ) -> None:
+    ) -> None:
         try:
             response = await self.app.handle_websocket(websocket)
         except Exception as error:

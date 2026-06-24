@@ -25,7 +25,6 @@ if TYPE_CHECKING:
     from ..app import AnyQuart  # noqa
 
 
-
 class HTTPDisconnectError(Exception):
     pass
 
@@ -51,10 +50,12 @@ class TestHTTPConnection:
         self.scope = scope
         self.status_code: int | None = None
         self._preserve_context = _preserve_context
-        self._server_send, self._server_receive = (
-            create_memory_object_stream[ASGIReceiveEvent](10))
-        self._client_send, self._client_receive = (
-            create_memory_object_stream[bytes | Exception](10))
+        self._server_send, self._server_receive = create_memory_object_stream[
+            ASGIReceiveEvent
+        ](10)
+        self._client_send, self._client_receive = create_memory_object_stream[
+            bytes | Exception
+        ](10)
         self._tg_cm: AbstractAsyncContextManager[TaskGroup]
 
     async def send(self, data: bytes) -> None:
@@ -82,13 +83,12 @@ class TestHTTPConnection:
     async def __aenter__(self) -> TestHTTPConnection:
         self._tg_cm = create_task_group()
         tg_entered = await self._tg_cm.__aenter__()
-        tg_entered.start_soon(
-            self.app, self.scope, self._asgi_receive, self._asgi_send)
+        tg_entered.start_soon(self.app, self.scope, self._asgi_receive, self._asgi_send)
         return self
 
     async def __aexit__(
         self, exc_type: type, exc_value: BaseException, tb: TracebackType
-        ) -> None:
+    ) -> None:
         if exc_type is not None:
             await self.disconnect()
         try:
@@ -136,23 +136,23 @@ class TestWebsocketConnection:
         self.response_data = bytearray()
         self.scope = scope
         self.status_code: int | None = None
-        self._server_send, self._server_receive = (
-            create_memory_object_stream[ASGIReceiveEvent](10))
-        self._client_send, self._client_receive = (
-            create_memory_object_stream[bytes | str | Exception](10))
+        self._server_send, self._server_receive = create_memory_object_stream[
+            ASGIReceiveEvent
+        ](10)
+        self._client_send, self._client_receive = create_memory_object_stream[
+            bytes | str | Exception
+        ](10)
         self._tg_cm: AbstractAsyncContextManager[TaskGroup]
 
     async def __aenter__(self) -> TestWebsocketConnection:
         self._tg_cm = create_task_group()
         tg_entered = await self._tg_cm.__aenter__()
-        tg_entered.start_soon(
-            self.app, self.scope, self._asgi_receive, self._asgi_send
-            )
+        tg_entered.start_soon(self.app, self.scope, self._asgi_receive, self._asgi_send)
         return self
 
     async def __aexit__(
         self, exc_type: type, exc_value: BaseException, tb: TracebackType
-        ) -> None:
+    ) -> None:
         try:
             await self.disconnect()
         except ClosedResourceError:
@@ -163,7 +163,6 @@ class TestWebsocketConnection:
             await self._client_send.aclose()
             await self._client_receive.aclose()
             await self._server_receive.aclose()
-
 
     async def receive(self) -> bytes | str:
         data = await self._client_receive.receive()
@@ -176,11 +175,11 @@ class TestWebsocketConnection:
         if isinstance(data, str):
             await self._server_send.send(
                 {"type": "websocket.receive", "bytes": None, "text": data}
-                )
+            )
         else:
             await self._server_send.send(
                 {"type": "websocket.receive", "bytes": data, "text": None}
-                )
+            )
 
     async def receive_json(self) -> Any:
         data = await self.receive()

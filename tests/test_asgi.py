@@ -71,8 +71,7 @@ async def test_http_completion() -> None:
     connection = ASGIHTTPConnection(app, scope)
 
     send_stream, receive_stream = create_memory_object_stream[ASGIReceiveEvent](2)
-    send_stream.send_nowait(
-        {"type": "http.request", "body": b"", "more_body": False})
+    send_stream.send_nowait({"type": "http.request", "body": b"", "more_body": False})
 
     async def receive() -> ASGIReceiveEvent:
         # This will block after returning the first and only entry
@@ -88,6 +87,7 @@ async def test_http_completion() -> None:
     finally:
         await send_stream.aclose()
         await receive_stream.aclose()
+
 
 @pytest.mark.parametrize(
     "request_message",
@@ -181,6 +181,7 @@ async def test_websocket_completion() -> None:
         await send_stream.aclose()
         await receive_stream.aclose()
 
+
 def test_http_path_from_absolute_target() -> None:
     app = AnyQuart(__name__)
     scope: HTTPScope = {
@@ -257,6 +258,7 @@ def test_websocket_path_from_absolute_target() -> None:
     websocket = connection._create_websocket_from_scope(lambda: None, receive_stream)  # type: ignore
     assert websocket.path == "/path"
 
+
 @pytest.mark.parametrize(
     "path, expected",
     [("/app", "/ "), ("/", "/ "), ("/app/", "/"), ("/app/2", "/2")],
@@ -285,6 +287,7 @@ def test_websocket_path_with_root_path(path: str, expected: str) -> None:
     receive_stream.close()
     websocket = connection._create_websocket_from_scope(lambda: None, receive_stream)  # type: ignore
     assert websocket.path == expected
+
 
 @pytest.mark.parametrize(
     "scope, headers, subprotocol, has_headers",
