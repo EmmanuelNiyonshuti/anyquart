@@ -6,6 +6,7 @@ from collections.abc import AsyncGenerator
 from collections.abc import AsyncIterable
 from collections.abc import AsyncIterator
 from collections.abc import Iterable
+from contextlib import AbstractAsyncContextManager
 from hashlib import md5
 from io import BytesIO
 from os import PathLike
@@ -15,6 +16,7 @@ from typing import Literal
 from typing import overload
 from typing import TYPE_CHECKING
 
+from anyio import AsyncFile
 from anyio import open_file as async_open
 from werkzeug.datastructures import ContentRange
 from werkzeug.datastructures import Headers
@@ -142,12 +144,11 @@ class FileBody(ResponseBody):
         self.end = self.size
         if buffer_size is not None:
             self.buffer_size = buffer_size
-        self.file = None
-        self.file_manager = None
+        self.file: AsyncFile[bytes] | None = None
+        self.file_manager: AbstractAsyncContextManager | None = None
 
     async def __aenter__(self) -> FileBody:
         self.file_manager = await async_open(self.file_path, mode="rb")
-        # self.file_manager = self.file_path.open(mode="rb")
         self.file = await self.file_manager.__aenter__()
         await self.file.seek(self.begin)
         return self
