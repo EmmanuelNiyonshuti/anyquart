@@ -34,7 +34,7 @@ jobs:
     needs: [build]
     environment:
       name: publish
-      url: https://pypi.org/project/Quart/${{ github.ref_name }}
+      url: https://pypi.org/project/AnyQuart/${{ github.ref_name }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write

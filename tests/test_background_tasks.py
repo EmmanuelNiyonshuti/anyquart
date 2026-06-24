@@ -1,21 +1,24 @@
 from __future__ import annotations
 
-import asyncio
 import time
 
-from quart import current_app
-from quart import Quart
+import pytest
+from anyio import sleep
+
+from anyquart import AnyQuart
+from anyquart import current_app
 
 
+@pytest.mark.anyio
 async def test_background_task() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.config["DATA"] = "data"
 
     data = None
 
     async def background() -> None:
         nonlocal data
-        await asyncio.sleep(0.5)
+        await sleep(0.5)
         data = current_app.config["DATA"]
 
     @app.route("/")
@@ -30,15 +33,16 @@ async def test_background_task() -> None:
     assert data == "data"
 
 
+@pytest.mark.anyio
 async def test_lifespan_background_task() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.config["DATA"] = "data"
 
     data = None
 
     async def background() -> None:
         nonlocal data
-        await asyncio.sleep(0.5)
+        await sleep(0.5)
         data = current_app.config["DATA"]
 
     @app.before_serving
@@ -51,8 +55,9 @@ async def test_lifespan_background_task() -> None:
     assert data == "data"
 
 
+@pytest.mark.anyio
 async def test_sync_background_task() -> None:
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.config["DATA"] = "data"
 
     data = None

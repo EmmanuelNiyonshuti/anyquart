@@ -3,10 +3,11 @@ from __future__ import annotations
 import pytest
 from werkzeug.exceptions import RequestEntityTooLarge
 
-from quart.formparser import MultiPartParser
-from quart.wrappers.request import Body
+from anyquart.formparser import MultiPartParser
+from anyquart.wrappers.request import Body
 
 
+@pytest.mark.anyio
 async def test_multipart_max_form_memory_size() -> None:
     """max_form_memory_size is tracked across multiple data events."""
     data = b"--bound\r\nContent-Disposition: form-field; name=a\r\n\r\n"

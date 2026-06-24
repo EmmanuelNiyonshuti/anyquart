@@ -2,24 +2,26 @@ from __future__ import annotations
 
 from http.cookies import SimpleCookie
 
-from hypercorn.typing import HTTPScope
+import pytest
+from anycorn.typing import HTTPScope
 from werkzeug.datastructures import Headers
 
-from quart.app import Quart
-from quart.sessions import SecureCookieSession
-from quart.sessions import SecureCookieSessionInterface
-from quart.testing import no_op_push
-from quart.wrappers import Request
-from quart.wrappers import Response
+from anyquart.app import AnyQuart
+from anyquart.sessions import SecureCookieSession
+from anyquart.sessions import SecureCookieSessionInterface
+from anyquart.testing import no_op_push
+from anyquart.wrappers import Request
+from anyquart.wrappers import Response
 
 
+@pytest.mark.anyio
 async def test_secure_cookie_session_interface_open_session(
     http_scope: HTTPScope,
 ) -> None:
     session = SecureCookieSession()
     session["something"] = "else"
     interface = SecureCookieSessionInterface()
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.secret_key = "secret"
     response = Response("")
     await interface.save_session(app, session, response)
@@ -39,11 +41,12 @@ async def test_secure_cookie_session_interface_open_session(
     assert new_session == session
 
 
+@pytest.mark.anyio
 async def test_secure_cookie_session_interface_save_session() -> None:
     session = SecureCookieSession()
     session["something"] = "else"
     interface = SecureCookieSessionInterface()
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.secret_key = "secret"
     response = Response("")
     await interface.save_session(app, session, response)
@@ -59,15 +62,17 @@ async def test_secure_cookie_session_interface_save_session() -> None:
     assert response.headers["Vary"] == "Cookie"
 
 
+@pytest.mark.anyio
 async def _save_session(session: SecureCookieSession) -> Response:
     interface = SecureCookieSessionInterface()
-    app = Quart(__name__)
+    app = AnyQuart(__name__)
     app.secret_key = "secret"
     response = Response("")
     await interface.save_session(app, session, response)
     return response
 
 
+@pytest.mark.anyio
 async def test_secure_cookie_session_interface_save_session_no_modification() -> None:
     session = SecureCookieSession()
     session["something"] = "else"
@@ -76,6 +81,7 @@ async def test_secure_cookie_session_interface_save_session_no_modification() ->
     assert response.headers.get("Set-Cookie") is None
 
 
+@pytest.mark.anyio
 async def test_secure_cookie_session_interface_save_session_no_access() -> None:
     session = SecureCookieSession()
     session["something"] = "else"

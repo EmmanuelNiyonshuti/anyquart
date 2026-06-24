@@ -6,7 +6,7 @@ import pytest
 from werkzeug.exceptions import abort
 from werkzeug.exceptions import HTTPException
 
-from quart import Response
+from anyquart import Response
 
 
 @pytest.mark.parametrize("status", [400, HTTPStatus.BAD_REQUEST])

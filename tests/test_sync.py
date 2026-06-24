@@ -5,14 +5,14 @@ from collections.abc import Generator
 
 import pytest
 
-from quart import Quart
-from quart import request
-from quart import ResponseReturnValue
+from anyquart import AnyQuart
+from anyquart import request
+from anyquart import ResponseReturnValue
 
 
 @pytest.fixture(name="app")
-def _app() -> Quart:
-    app = Quart(__name__)
+def _app() -> AnyQuart:
+    app = AnyQuart(__name__)
 
     @app.route("/", methods=["GET", "POST"])
     def index() -> ResponseReturnValue:
@@ -30,7 +30,8 @@ def _app() -> Quart:
     return app
 
 
-async def test_sync_request_context(app: Quart) -> None:
+@pytest.mark.anyio
+async def test_sync_request_context(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/")
     assert b"GET" in (await response.get_data())
@@ -38,7 +39,8 @@ async def test_sync_request_context(app: Quart) -> None:
     assert b"POST" in (await response.get_data())
 
 
-async def test_sync_generator(app: Quart) -> None:
+@pytest.mark.anyio
+async def test_sync_generator(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/gen")
     result = await response.get_data()
