@@ -337,7 +337,6 @@ class AnyQuart(App):
         self.background_tg_cm: AbstractAsyncContextManager[TaskGroup] | None = None
         self.background_tasks_tg: TaskGroup | None = None
         self.before_serving_funcs: list[Callable[[], Awaitable[None]]] = []
-        self.before_serving_funcs: list[Callable[[], Awaitable[None]]] = []
         self.before_websocket_funcs: dict[
             AppOrBlueprintKey, list[BeforeWebsocketCallable]
         ] = defaultdict(list)
