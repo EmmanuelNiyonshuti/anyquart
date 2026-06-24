@@ -142,6 +142,8 @@ select = [
 ]
 ignore = [
     "UP038",  # keep isinstance tuple
+    "UP007",  # Union[] is needed for forward-referenced type aliases
+    "UP045"
 ]
 
 [tool.ruff.lint.isort]
