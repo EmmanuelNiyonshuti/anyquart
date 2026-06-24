@@ -72,6 +72,12 @@ class TestApp:
         await self._tg_cm.__aexit__(exc_type, exc_value, tb)
         await self._app_receive_stream.aclose()
 
+    # since the `TestAppProtocol` defines startup and shutdown methods
+    # startup and shutdown are added here for static type checkers only
+    async def startup(self) -> None: ...
+
+    async def shutdown(self) -> None: ...
+
     async def _asgi_receive(self) -> ASGIReceiveEvent:
         return await self._app_receive_stream.receive()
 
