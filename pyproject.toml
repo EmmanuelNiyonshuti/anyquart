@@ -1,5 +1,5 @@
 [project]
-name = "AnyQuart"
+name = "anyquart"
 version = "0.1.0"
 description = "A fork of Quart that uses AnyIO"
 readme = "README.md"
