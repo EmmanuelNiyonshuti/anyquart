@@ -304,7 +304,7 @@ def with_appcontext(fn: Callable | None = None) -> Callable:
                         )
                     raise
 
-        return anyio.run(_inner())
+        return anyio.run(_inner)
 
     return functools.update_wrapper(decorator, fn)
 

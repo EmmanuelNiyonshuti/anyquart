@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Generator
+
 import pytest
 from werkzeug.datastructures import Headers
 
@@ -18,7 +20,7 @@ def test_decode_headers() -> None:
 
 @pytest.mark.anyio
 async def test_run_sync_iterable() -> None:
-    def gen():
+    def gen() -> Generator[int]:
         yield from range(4)
 
     assert [v async for v in run_sync_iterable(gen())] == [0, 1, 2, 3]

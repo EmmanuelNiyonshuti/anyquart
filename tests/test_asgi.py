@@ -70,7 +70,7 @@ async def test_http_completion() -> None:
     }
     connection = ASGIHTTPConnection(app, scope)
 
-    send_stream, receive_stream = create_memory_object_stream[dict](2)
+    send_stream, receive_stream = create_memory_object_stream[ASGIReceiveEvent](2)
     send_stream.send_nowait(
         {"type": "http.request", "body": b"", "more_body": False})
 
@@ -97,7 +97,7 @@ async def test_http_completion() -> None:
     ],
 )
 @pytest.mark.anyio
-async def test_http_request_without_body(request_message: dict) -> None:
+async def test_http_request_without_body(request_message: ASGIReceiveEvent) -> None:
     app = AnyQuart(__name__)
 
     scope: HTTPScope = {
@@ -119,7 +119,7 @@ async def test_http_request_without_body(request_message: dict) -> None:
     connection = ASGIHTTPConnection(app, scope)
     request = connection._create_request_from_scope(lambda: None)  # type: ignore
 
-    send_stream, receive_stream = create_memory_object_stream[dict](2)
+    send_stream, receive_stream = create_memory_object_stream[ASGIReceiveEvent](2)
     send_stream.send_nowait(request_message)
 
     async def receive() -> ASGIReceiveEvent:
@@ -163,7 +163,7 @@ async def test_websocket_completion() -> None:
     }
     connection = ASGIWebsocketConnection(app, scope)
 
-    send_stream, receive_stream = create_memory_object_stream[dict](1)
+    send_stream, receive_stream = create_memory_object_stream[ASGIReceiveEvent](1)
     send_stream.send_nowait({"type": "websocket.connect"})
 
     async def receive() -> ASGIReceiveEvent:

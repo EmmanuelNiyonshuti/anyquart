@@ -72,7 +72,7 @@ class Blueprint(SansioBlueprint):
         to ``None``, which tells the browser to use conditional requests
         instead of a timed cache, which is usually preferable.
 
-        Note this is a duplicate of the same method in the anyquart
+        Note this is a duplicate of the same method in the AnyQuart
         class.
 
         """
@@ -287,7 +287,7 @@ class Blueprint(SansioBlueprint):
         """Add a before websocket to the App.
 
         This is designed to be used as a decorator, and has the same arguments
-        as :meth:`~anyquart.anyquart.before_websocket`. It applies to all requests to the
+        as :meth:`~anyquart.AnyQuart.before_websocket`. It applies to all requests to the
         app this blueprint is registered on. An example usage,
 
         .. code-block:: python
@@ -306,7 +306,7 @@ class Blueprint(SansioBlueprint):
         """Add a before serving to the App.
 
         This is designed to be used as a decorator, and has the same arguments
-        as :meth:`~anyquart.anyquart.before_serving`. An example usage,
+        as :meth:`~anyquart.AnyQuart.before_serving`. An example usage,
 
         .. code-block:: python
 
@@ -324,7 +324,7 @@ class Blueprint(SansioBlueprint):
         """Add an after websocket function to the App.
 
         This is designed to be used as a decorator, and has the same arguments
-        as :meth:`~anyquart.anyquart.after_websocket`. It applies to all requests to the
+        as :meth:`~anyquart.AnyQuart.after_websocket`. It applies to all requests to the
         ppe this blueprint is registered on. An example usage,
 
         .. code-block:: python
@@ -378,7 +378,7 @@ class Blueprint(SansioBlueprint):
         """Add a teardown websocket function to the app.
 
         This is designed to be used as a decorator, and has the same
-        arguments as :meth:`~anyquart.anyquart.teardown_websocket`. It applies
+        arguments as :meth:`~anyquart.AnyQuart.teardown_websocket`. It applies
         to all requests to the app this blueprint is registered on. An
         example usage,
 
