@@ -287,7 +287,8 @@ class Blueprint(SansioBlueprint):
         """Add a before websocket to the App.
 
         This is designed to be used as a decorator, and has the same arguments
-        as :meth:`~anyquart.AnyQuart.before_websocket`. It applies to all requests to the
+        as :meth:`~anyquart.AnyQuart.before_websocket`.
+        It applies to all requests to the
         app this blueprint is registered on. An example usage,
 
         .. code-block:: python

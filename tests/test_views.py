@@ -4,6 +4,7 @@ from collections.abc import Callable
 from typing import Any
 
 import pytest
+
 from anyquart import AnyQuart
 from anyquart import request
 from anyquart import ResponseReturnValue
