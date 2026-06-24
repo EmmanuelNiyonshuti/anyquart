@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Awaitable
 from contextlib import AbstractAsyncContextManager
+from types import TracebackType
 from typing import Any
 from typing import AnyStr
 from typing import TYPE_CHECKING
@@ -23,6 +23,7 @@ from ..wrappers import Response
 
 if TYPE_CHECKING:
     from ..app import AnyQuart  # noqa
+
 
 
 class HTTPDisconnectError(Exception):
@@ -51,7 +52,7 @@ class TestHTTPConnection:
         self.status_code: int | None = None
         self._preserve_context = _preserve_context
         self._server_send, self._server_receive = (
-            create_memory_object_stream[dict](10))
+            create_memory_object_stream[ASGIReceiveEvent](10))
         self._client_send, self._client_receive = (
             create_memory_object_stream[bytes | Exception](10))
         self._tg_cm: AbstractAsyncContextManager[TaskGroup]
@@ -85,7 +86,9 @@ class TestHTTPConnection:
             self.app, self.scope, self._asgi_receive, self._asgi_send)
         return self
 
-    async def __aexit__(self, exc_type, exc_value, tb):
+    async def __aexit__(
+        self, exc_type: type, exc_value: BaseException, tb: TracebackType
+        ) -> None:
         if exc_type is not None:
             await self.disconnect()
         try:
@@ -134,9 +137,9 @@ class TestWebsocketConnection:
         self.scope = scope
         self.status_code: int | None = None
         self._server_send, self._server_receive = (
-            create_memory_object_stream[dict](10))
+            create_memory_object_stream[ASGIReceiveEvent](10))
         self._client_send, self._client_receive = (
-            create_memory_object_stream[bytes | Exception](10))
+            create_memory_object_stream[bytes | str | Exception](10))
         self._tg_cm: AbstractAsyncContextManager[TaskGroup]
 
     async def __aenter__(self) -> TestWebsocketConnection:
@@ -147,7 +150,9 @@ class TestWebsocketConnection:
             )
         return self
 
-    async def __aexit__(self, exc_type, exc_value, tb) -> None:
+    async def __aexit__(
+        self, exc_type: type, exc_value: BaseException, tb: TracebackType
+        ) -> None:
         try:
             await self.disconnect()
         except ClosedResourceError:
@@ -160,7 +165,7 @@ class TestWebsocketConnection:
             await self._server_receive.aclose()
 
 
-    async def receive(self) -> AnyStr:
+    async def receive(self) -> bytes | str:
         data = await self._client_receive.receive()
         if isinstance(data, Exception):
             raise data
@@ -169,9 +174,13 @@ class TestWebsocketConnection:
 
     async def send(self, data: AnyStr) -> None:
         if isinstance(data, str):
-            await self._server_send.send({"type": "websocket.receive", "text": data})
+            await self._server_send.send(
+                {"type": "websocket.receive", "bytes": None, "text": data}
+                )
         else:
-            await self._server_send.send({"type": "websocket.receive", "bytes": data})
+            await self._server_send.send(
+                {"type": "websocket.receive", "bytes": data, "text": None}
+                )
 
     async def receive_json(self) -> Any:
         data = await self.receive()
@@ -181,11 +190,12 @@ class TestWebsocketConnection:
         raw = dumps(data)
         await self.send(raw)
 
-    async def close(self, code: int) -> None:
-        await self._server_send.send({"type": "websocket.close", "code": code})
+    # close event is left like this because of static type checkers(mypy).
+    # The app should send close event rather than the test client
+    async def close(self, code: int) -> None: ...
 
     async def disconnect(self) -> None:
-        await self._server_send.send({"type": "websocket.disconnect"})
+        await self._server_send.send({"type": "websocket.disconnect", "code": None})
         await self._server_send.aclose()
 
     async def _asgi_receive(self) -> ASGIReceiveEvent:

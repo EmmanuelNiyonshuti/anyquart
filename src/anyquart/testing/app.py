@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Awaitable
 from contextlib import AbstractAsyncContextManager
 from types import TracebackType
 from typing import TYPE_CHECKING
@@ -39,8 +38,8 @@ class TestApp:
         self._startup = Event()
         self._shutdown = Event()
         self._app_send_stream, self._app_receive_stream = (
-            create_memory_object_stream[dict](10)
-            )
+            create_memory_object_stream[ASGIReceiveEvent](10)
+        )
         self._tg_cm: AbstractAsyncContextManager[TaskGroup]
 
     def test_client(self) -> TestClientProtocol:
