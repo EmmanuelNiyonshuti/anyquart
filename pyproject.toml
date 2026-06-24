@@ -1,11 +1,14 @@
 [project]
 name = "AnyQuart"
-version = "0.20.0"
+version = "0.1.0"
 description = "A fork of Quart that uses AnyIO"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE.txt"]
-authors = [{ name = "pgjones", email = "philip.graham.jones@googlemail.com" }]
+authors = [
+    { name = "pgjones", email = "philip.graham.jones@googlemail.com" },
+    { name = "NIYONSHUTI Emmanuel", email = "emmanuelniyonshuti13@gmail.com" }
+    ]
 maintainers = [{ name = "NIYONSHUTI Emmanuel", email = "emmanuelniyonshuti13@gmail.com" }]
 classifiers = [
     "Development Status :: 4 - Beta",

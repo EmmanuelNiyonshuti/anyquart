@@ -33,7 +33,7 @@ jobs:
   publish-pypi:
     needs: [build]
     environment:
-      name: publish
+      name: pypi
       url: https://pypi.org/project/AnyQuart/${{ github.ref_name }}
     runs-on: ubuntu-latest
     permissions:
