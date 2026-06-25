@@ -4,7 +4,16 @@ Quart runs on Asyncio and when you want to run it on Trio event loop you use [qu
 
 AnyQuart is [Quart](https://github.com/pallets/quart) running on [AnyIO](https://github.com/agronholm/anyio). It is a fork of Quart 0.20.1.
 
-All credit for Quart goes to the [Pallets](https://palletsprojects.com) team.
+
+
+## Differences from Quart
+`AnyQuart` and `Quart` are essentially the same thing. The only difference is the name and the internals(Asyncio replaced with AnyIO). This also means the testing setup changes, which is explained in the [Testing](#testing) section below.
+
+- Works with both asyncio and Trio code via AnyIO, giving you structured concurrency out of the box.
+- Uses [Anycorn](https://github.com/davidbrochart/anycorn) instead of Hypercorn as the development server.
+- [aiofiles](https://github.com/Tinche/aiofiles) dropped, AnyIO's file I/O is used instead.
+- [pytest-asyncio](https://github.com/pytest-dev/pytest-asyncio) replaced by [AnyIO pytest plugin](https://anyio.readthedocs.io/en/stable/testing.html).
+- Runs on Python 3.10+ .
 
 ## Usage
 You will have to replace `quart` with `anyquart` and `Quart` with `AnyQuart`.
@@ -43,8 +52,8 @@ $ anyquart run
 ```
 
 # Testing
-Pytest does not natively support async test functions hence we need an async framework for async tests and fixtures.
-Quart uses pytest-asyncio, here we use AnyIO's pytest plugin. You will need to specify which backend your tests run on via the `anyio_backend` fixture and decorate your asynchronous tests with `@pytest.mark.anyio`.
+Pytest requires a plugin to run asynchronous test functions and fixtures.
+Quart uses pytest-asyncio, while AnyQuart uses AnyIO's pytest plugin. You will need to specify which backend your tests run on via the `anyio_backend` fixture and decorate your asynchronous tests with `@pytest.mark.anyio`.
 
 ```python
 import pytest
@@ -67,11 +76,20 @@ async def test_do_something(test_client) -> None:
 
 ```
 
-## Differences from Quart
-- Uses [Anycorn](https://github.com/davidbrochart/anycorn) instead of Hypercorn as the development server
-- Works with both asyncio and Trio via AnyIO
-- Uses AnyIO's file I/O instead of aiofiles
-- AnyIO primitives work freely in route handlers, giving you structured concurrency out of the box
-- Tests need `@pytest.mark.anyio` and the `anyio_backend` fixture instead of pytest-asyncio
-
 Refer to the [Quart documentation](https://quart.palletsprojects.com) for more details.
+
+## Contributing
+Issues and Pull Requests are welcome.
+
+## Contributors ✨
+
+<details>
+  <summary>See All Contributors</summary>
+
+  <div align="center">
+    <a href="https://github.com/EmmanuelNiyonshuti/anyquart/graphs/contributors?all=1">
+      <img src="https://contrib.rocks/image?repo=EmmanuelNiyonshuti/anyquart"/>
+    </a>
+  </div>
+</details>
+
