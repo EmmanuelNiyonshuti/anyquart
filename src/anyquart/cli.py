@@ -648,14 +648,29 @@ def run_command(
     if reload is None:
         reload = debug
 
-    app.run(
-        debug=debug,
-        host=host,
-        port=port,
-        certfile=certfile,
-        keyfile=keyfile,
-        use_reloader=reload,
-    )
+    if reload:
+        """
+        Delegating Development server reloading to Anycorn.
+        We need to provide the application path to Anycorn Config.
+        """
+        app.run(
+            debug=debug,
+            host=host,
+            port=port,
+            certfile=certfile,
+            keyfile=keyfile,
+            use_reloader=reload,
+            app_import_path=info.app_import_path,
+        )
+    else:
+        app.run(
+            debug=debug,
+            host=host,
+            port=port,
+            certfile=certfile,
+            keyfile=keyfile,
+            use_reloader=False,
+        )
 
 
 @click.command("shell", short_help="Run a shell in the app context.")

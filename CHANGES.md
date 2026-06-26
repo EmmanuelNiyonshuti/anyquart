@@ -1,3 +1,15 @@
+## Version 0.1.1
+
+Unreleased
+
+- Fix development server shutdown and reload. Signal handling and serving
+  now run concurrently via a task group with shutdown triggered by an event
+  rather than cancellation. Reload delegates to Anycorn's multiprocess
+  reloader, raising an exception to trigger reload (as `Quart` did) violated
+  AnyIO's structured concurrency cancel scope ordering when Anycorn's own
+  task groups was getting involved.
+
+
 ## AnyQuart 0.1.0
 
 Released 2026-06-24

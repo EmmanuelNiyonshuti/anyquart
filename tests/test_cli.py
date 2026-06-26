@@ -4,6 +4,7 @@ import os
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
+from unittest.mock import ANY
 from unittest.mock import Mock
 
 import pytest
@@ -97,6 +98,20 @@ def test_run_command_development_debug_disabled(
         certfile=None,
         keyfile=None,
         use_reloader=False,
+    )
+
+
+def test_run_command_with_reload(app: Mock) -> None:
+    runner = CliRunner()
+    runner.invoke(cli, ["--app", "module:app", "run", "--reload"])
+    app.run.assert_called_once_with(
+        debug=False,
+        host="127.0.0.1",
+        port=5000,
+        certfile=None,
+        keyfile=None,
+        use_reloader=True,
+        app_import_path=ANY,
     )
 
 
