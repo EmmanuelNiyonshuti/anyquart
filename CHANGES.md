@@ -1,3 +1,10 @@
+## Version 0.1.1
+
+Unreleased
+
+- Removed deadcode in `get_send_file_max_age`
+
+
 ## AnyQuart 0.1.0
 
 Released 2026-06-24
