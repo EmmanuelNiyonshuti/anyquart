@@ -9,7 +9,6 @@ from collections import defaultdict
 from collections.abc import AsyncGenerator
 from collections.abc import Awaitable
 from collections.abc import Callable
-from collections.abc import Coroutine
 from contextlib import AbstractAsyncContextManager
 from datetime import timedelta
 from inspect import isasyncgen
@@ -25,6 +24,7 @@ from typing import ParamSpec
 from typing import TypeVar
 from urllib.parse import quote
 
+import anyio
 from anycorn import serve
 from anycorn.config import Config as HyperConfig
 from anycorn.typing import ASGIReceiveCallable
@@ -37,8 +37,6 @@ from anyio import Event
 from anyio import Lock
 from anyio import open_file as async_open
 from anyio import open_signal_receiver
-from anyio import run
-from anyio import sleep
 from anyio.abc import TaskGroup
 from flask.sansio.app import App
 from flask.sansio.scaffold import setupmethod
@@ -123,9 +121,6 @@ from .typing import TestClientProtocol
 from .typing import WebsocketCallable
 from .typing import WhileServingCallable
 from .utils import file_path_to_path
-from .utils import MustReloadError
-from .utils import observe_changes
-from .utils import restart
 from .utils import run_sync
 from .wrappers import BaseRequestWebsocket
 from .wrappers import Request
@@ -780,13 +775,14 @@ class AnyQuart(App):
 
     def run(
         self,
-        host: str | None = None,
-        port: int | None = None,
-        debug: bool | None = None,
-        use_reloader: bool = True,
+        host: str = "127.0.0.1",
+        port: int = 5000,
+        debug: bool = False,
         ca_certs: str | None = None,
         certfile: str | None = None,
         keyfile: str | None = None,
+        use_reloader: bool | None = False,
+        app_import_path: str | None = None,
         **kwargs: Any,
     ) -> None:
         """Run this application.
@@ -818,7 +814,6 @@ class AnyQuart(App):
         if debug is not None:
             self.debug = debug
 
-        scheme = "https" if certfile is not None and keyfile is not None else "http"
         if host is None:
             server_name = self.config.get("SERVER_NAME")
             host = (
@@ -831,28 +826,21 @@ class AnyQuart(App):
 
         print(f" * Serving AnyQuart app '{self.name}'")
         print(f" * Debug mode: {self.debug or False}")
-        print(" * Please use an ASGI server (e.g. Hypercorn) directly in production")
+        print(" * Please use an ASGI server (e.g. Anycorn) directly in production")
+        scheme = "https" if certfile is not None and keyfile is not None else "http"
         print(f" * Running on {scheme}://{host}:{port} (CTRL + C to quit)")
 
-        reload_ = False
-        try:
-            run(
-                self._run_serve,
-                host,
-                port,
-                debug,
-                ca_certs,
-                certfile,
-                keyfile,
-                use_reloader,
-            )
-        except MustReloadError:
-            reload_ = True
+        if use_reloader:
+            from anycorn.run import run as anycorn_run
 
-        if reload_:
-            restart()
+            config = self._build_config(host, port, debug, ca_certs, certfile, keyfile)
+            config.use_reloader = True
+            config.application_path = app_import_path
+            anycorn_run(config)
+        else:
+            anyio.run(self._run_serve, host, port, debug, ca_certs, certfile, keyfile)
 
-    async def _run_serve(
+    def _build_config(
         self,
         host: str,
         port: int,
@@ -860,45 +848,30 @@ class AnyQuart(App):
         ca_certs: str | None,
         certfile: str | None,
         keyfile: str | None,
-        use_reloader: bool,
-    ) -> None:
-        shutdown_event = Event()
+    ) -> HyperConfig:
+        config = HyperConfig()
+        config.access_log_format = "%(h)s %(r)s %(s)s %(b)s %(D)s"
+        config.accesslog = "-"
+        config.bind = [f"{host}:{port}"]
+        config.ca_certs = ca_certs
+        config.certfile = certfile
+        if debug is not None:
+            self.debug = debug
+            config.debug = debug
+        config.errorlog = config.accesslog
+        config.keyfile = keyfile
+        return config
 
-        async def watch_signals() -> None:
-            with open_signal_receiver(signal.SIGINT, signal.SIGTERM) as signals:
-                async for _ in signals:
-                    shutdown_event.set()
-                    return
-
-        try:
-            async with create_task_group() as tg:
-                tg.start_soon(watch_signals)
-                tg.start_soon(
-                    self.run_task,
-                    host,
-                    port,
-                    debug,
-                    ca_certs,
-                    certfile,
-                    keyfile,
-                    shutdown_event.wait,
-                )
-                if use_reloader:
-                    tg.start_soon(observe_changes, sleep, shutdown_event)
-        except MustReloadError:
-            raise
-
-    def run_task(
+    async def _run_serve(
         self,
         host: str = "127.0.0.1",
         port: int = 5000,
-        debug: bool | None = None,
+        debug: bool = False,
         ca_certs: str | None = None,
         certfile: str | None = None,
         keyfile: str | None = None,
-        shutdown_trigger: Callable[..., Awaitable[None]] | None = None,
-    ) -> Coroutine[None, None, None]:
-        """Return a task that when awaited runs this application.
+    ) -> None:
+        """runs this application.
 
         This is best used for development only, see Hypercorn for
         production servers.
@@ -913,18 +886,19 @@ class AnyQuart(App):
             keyfile: Path to the SSL key file.
 
         """
-        config = HyperConfig()
-        config.access_log_format = "%(h)s %(r)s %(s)s %(b)s %(D)s"
-        config.accesslog = "-"
-        config.bind = [f"{host}:{port}"]
-        config.ca_certs = ca_certs
-        config.certfile = certfile
-        if debug is not None:
-            self.debug = debug
-        config.errorlog = config.accesslog
-        config.keyfile = keyfile
+        shutdown_event = Event()
 
-        return serve(self, config, shutdown_trigger=shutdown_trigger)
+        async def watch_signals() -> None:
+            with open_signal_receiver(signal.SIGINT, signal.SIGTERM) as signals:
+                async for _ in signals:
+                    shutdown_event.set()
+                    return
+
+        config = self._build_config(host, port, debug, ca_certs, certfile, keyfile)
+        async with create_task_group() as tg:
+            tg.start_soon(watch_signals)
+            await serve(self, config, shutdown_trigger=shutdown_event.wait)
+            tg.cancel_scope.cancel()
 
     def test_client(
         self, use_cookies: bool = True, **kwargs: Any
