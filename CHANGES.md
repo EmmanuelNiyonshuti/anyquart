@@ -1,6 +1,6 @@
-## Version 0.1.1
+## AnyQuart 0.1.1
 
-Unreleased
+Released 2026-06-26
 
 - Fix development server shutdown and reload. Signal handling and serving
   now run concurrently via a task group with shutdown triggered by an event
