@@ -8,6 +8,8 @@ Unreleased
   reloader, raising an exception to trigger reload (as `Quart` did) violated
   AnyIO's structured concurrency cancel scope ordering when Anycorn's own
   task groups was getting involved.
+- Removed deadcode in `get_send_file_max_age`
+
 
 
 ## AnyQuart 0.1.0
