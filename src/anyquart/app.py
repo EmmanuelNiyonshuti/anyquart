@@ -14,7 +14,6 @@ from datetime import timedelta
 from inspect import isasyncgen
 from inspect import iscoroutinefunction as _inspect_iscoroutinefunction
 from inspect import isgenerator
-from pathlib import Path
 from types import TracebackType
 from typing import Any
 from typing import AnyStr
@@ -783,7 +782,7 @@ class AnyQuart(App):
         certfile: str | None = None,
         keyfile: str | None = None,
         use_reloader: bool | None = False,
-        app_import_path: Path | None = None,
+        app_import_path: str | None = None,
         **kwargs: Any,
     ) -> None:
         """Run this application.
