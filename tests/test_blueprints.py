@@ -4,6 +4,7 @@ from typing import cast
 
 import click
 import pytest
+from flask.sansio.scaffold import _sentinel
 
 from anyquart import abort
 from anyquart import AnyQuart
@@ -159,7 +160,7 @@ async def test_blueprint_method_view() -> None:
     [
         ("named", ["named", "cmd"]),
         (None, ["cmd"]),
-        (Ellipsis, ["blueprint", "cmd"]),
+        (_sentinel, ["blueprint", "cmd"]),
     ],
 )
 def test_cli_blueprints(cli_group: str | None, args: list[str]) -> None:
