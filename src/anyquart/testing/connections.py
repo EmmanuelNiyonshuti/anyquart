@@ -92,16 +92,15 @@ class TestHTTPConnection:
         if exc_type is not None:
             await self.disconnect()
         try:
-            await self._tg_cm.__aexit__(exc_type, exc_value, tb)
-            async for data in self._client_receive:
-                if isinstance(data, bytes):
-                    self.response_data.extend(data)
-                elif not isinstance(data, HTTPDisconnectError):
-                    raise data
+            with self._client_receive, self._client_send:
+                async for data in self._client_receive:
+                    if isinstance(data, bytes):
+                        self.response_data.extend(data)
+                    elif not isinstance(data, HTTPDisconnectError):
+                        raise data
         finally:
-            await self._client_receive.aclose()
             await self._server_receive.aclose()
-            await self._client_send.aclose()
+            await self._tg_cm.__aexit__(exc_type, exc_value, tb)
 
     async def as_response(self) -> Response:
         return self.app.response_class(

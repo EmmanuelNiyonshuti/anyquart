@@ -1,5 +1,12 @@
 ## AnyQuart 0.1.1
 
+Unreleased
+
+- Fix hangs during cleanup in `TestHTTPConnection.__aexit__` for streaming responses.
+
+
+## AnyQuart 0.1.1
+
 Released 2026-06-26
 
 - Fix development server shutdown and reload. Signal handling and serving
