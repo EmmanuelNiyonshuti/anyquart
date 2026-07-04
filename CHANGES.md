@@ -1,7 +1,7 @@
 ## AnyQuart 0.1.1
 
 Unreleased
-- Improve `FileBody` cleanup and resource handling by using `AsyncFile` directly.
+- Removed `FileBody.file_manager` and used `AsyncFile` directly to improve `FileBody` cleanup and resource handling.
 - Fix hangs during cleanup in `TestHTTPConnection.__aexit__` for streaming responses.
 
 
