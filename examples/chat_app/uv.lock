@@ -49,7 +49,7 @@ wheels = [
 [[package]]
 name = "anyquart"
 version = "0.1.1"
-source = { registry = "https://pypi.org/simple" }
+source = { editable = "../../" }
 dependencies = [
     { name = "anycorn" },
     { name = "anyio" },
@@ -63,9 +63,47 @@ dependencies = [
     { name = "typing-extensions", marker = "python_full_version < '3.13'" },
     { name = "werkzeug" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e3/33/015d8eda357da8f4f178d7a59de605abeff5abfa2826477846b3423531bb/anyquart-0.1.1.tar.gz", hash = "sha256:326f7c34ae82fa94c6deff0e4f5d889261aa39a540f8f880d4fc35720c74642b", size = 64506, upload-time = "2026-06-26T10:33:34.399Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/68/01/a3ad88af02bc5bb0d5b641447dd260cdf3b5cd5db3248a16b117cc7c09e7/anyquart-0.1.1-py3-none-any.whl", hash = "sha256:e2268dbfe85a465a2c41d981b24ad081a9db44599f69dfc9b4b942e048e3725d", size = 78210, upload-time = "2026-06-26T10:33:32.974Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "anycorn", specifier = ">=0.11.2" },
+    { name = "anyio", specifier = ">=4.14.0,<5" },
+    { name = "blinker", specifier = ">=1.6" },
+    { name = "click", specifier = ">=8.0" },
+    { name = "flask", specifier = ">=3.0" },
+    { name = "importlib-metadata", marker = "python_full_version < '3.13'" },
+    { name = "itsdangerous" },
+    { name = "jinja2" },
+    { name = "markupsafe" },
+    { name = "python-dotenv", marker = "extra == 'dotenv'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+    { name = "werkzeug", specifier = ">=3.0" },
+]
+provides-extras = ["dotenv"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "ruff" },
+    { name = "tox" },
+    { name = "tox-uv" },
+    { name = "trio", specifier = "==0.33.0" },
+]
+gha-update = [{ name = "gha-update", marker = "python_full_version >= '3.12'" }]
+pre-commit = [
+    { name = "pre-commit" },
+    { name = "pre-commit-uv" },
+]
+tests = [
+    { name = "hypothesis" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-sugar" },
+    { name = "python-dotenv" },
+]
+typing = [
+    { name = "mypy" },
+    { name = "pyright" },
+    { name = "pytest" },
 ]
 
 [[package]]
@@ -89,7 +127,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "anyquart", specifier = ">=0.1.1" },
+    { name = "anyquart", editable = "../../" },
     { name = "pydantic", specifier = ">=2.13.4" },
     { name = "pytest", specifier = ">=9.1.1" },
 ]
@@ -120,7 +158,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
 wheels = [
