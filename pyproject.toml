@@ -1,6 +1,6 @@
 [project]
 name = "anyquart"
-version = "0.1.1"
+version = "0.2.0"
 description = "A fork of Quart that uses AnyIO"
 readme = "README.md"
 license = "MIT"

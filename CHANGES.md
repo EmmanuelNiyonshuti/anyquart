@@ -1,6 +1,10 @@
-## AnyQuart 0.1.1
+## AnyQuart 0.2.0
 
-Unreleased
+Released 2026-07-04
+
+- Improved stricter `mypy` checking by removing several blanket type-checking overrides and Removed the unused `find_package` helper (dead code inherited from Quart).
+- Added Examples for a `blog`, `RestApi`, `chat` and video streaming application with a CI to run their tests. These example
+  were customized to run on AnyQuart as Quart also provides them.
 - Removed `FileBody.file_manager` and used `AsyncFile` directly to improve `FileBody` cleanup and resource handling.
 - Fix hangs during cleanup in `TestHTTPConnection.__aexit__` for streaming responses.
 
