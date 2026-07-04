@@ -1143,7 +1143,7 @@ class AnyQuart(App):
         .. versionadded:: 0.11
 
         Override if you wish to change how synchronous functions are
-        run. Before anyquart 0.11 this did not run the synchronous code
+        run. Before quart 0.11 this did not run the synchronous code
         in an executor.
         """
         if iscoroutinefunction(func):
@@ -1340,7 +1340,12 @@ class AnyQuart(App):
         request.body.set_result(request_body)
         return self.request_context(request)
 
-    def add_background_task(self, func: Callable, *args: Any, **kwargs: Any) -> None:
+    def add_background_task(
+        self,
+        func: Callable[P, Awaitable[T]],
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> None:
         if self.background_tasks_tg is None:
             raise RuntimeError(
                 "Can not add background tasks before the app has started."
@@ -1409,7 +1414,9 @@ class AnyQuart(App):
 
         response: ResponseTypes
         if isinstance(value, HTTPException):
-            response = value.get_response()  # type: ignore
+            werkzeug_response = value.get_response()
+            assert isinstance(werkzeug_response, (Response, WerkzeugResponse))
+            response = werkzeug_response
         elif not isinstance(value, (Response, WerkzeugResponse)):
             if (
                 isinstance(value, (str, bytes, bytearray))

@@ -10,13 +10,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from anycorn.typing import HTTPScope
 from hypothesis import given
 from hypothesis import strategies as strategies
 from werkzeug.datastructures import Headers
 from werkzeug.exceptions import RequestedRangeNotSatisfiable
 
 from anyquart.testing import no_op_push
-from anyquart.typing import HTTPScope
 from anyquart.wrappers import Request
 from anyquart.wrappers.response import DataBody
 from anyquart.wrappers.response import FileBody
