@@ -21,8 +21,8 @@ from zlib import adler32
 from flask.helpers import get_root_path as get_root_path  # noqa: F401
 from werkzeug.exceptions import abort as werkzeug_abort
 from werkzeug.exceptions import NotFound
+from werkzeug.security import safe_join
 from werkzeug.utils import redirect as werkzeug_redirect
-from werkzeug.utils import safe_join
 from werkzeug.wrappers import Response as WerkzeugResponse
 
 from .globals import _cv_request
