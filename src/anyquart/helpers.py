@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import mimetypes
 import os
-import pkgutil
-import sys
 from collections.abc import Callable
 from collections.abc import Iterable
 from datetime import datetime
@@ -21,8 +19,8 @@ from zlib import adler32
 from flask.helpers import get_root_path as get_root_path  # noqa: F401
 from werkzeug.exceptions import abort as werkzeug_abort
 from werkzeug.exceptions import NotFound
+from werkzeug.security import safe_join
 from werkzeug.utils import redirect as werkzeug_redirect
-from werkzeug.utils import safe_join
 from werkzeug.wrappers import Response as WerkzeugResponse
 
 from .globals import _cv_request
@@ -230,32 +228,6 @@ def stream_with_context(func: Callable) -> Callable:
                 yield data
 
     return generator
-
-
-def find_package(name: str) -> tuple[Path | None, Path]:
-    """Finds packages install prefix (or None) and it's containing Folder"""
-    module = name.split(".")[0]
-    loader = pkgutil.get_loader(module)
-    if name == "__main__" or loader is None:
-        package_path = Path.cwd()
-    else:
-        if hasattr(loader, "get_filename"):
-            filename = loader.get_filename(module)
-        else:
-            __import__(name)
-            filename = sys.modules[name].__file__
-        package_path = Path(filename).resolve().parent
-        if hasattr(loader, "is_package"):
-            is_package = loader.is_package(module)
-            if is_package:
-                package_path = Path(package_path).resolve().parent
-    sys_prefix = Path(sys.prefix).resolve()
-    try:
-        package_path.relative_to(sys_prefix)
-    except ValueError:
-        return None, package_path
-    else:
-        return sys_prefix, package_path
 
 
 async def send_from_directory(
