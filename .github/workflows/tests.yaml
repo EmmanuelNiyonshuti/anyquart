@@ -30,6 +30,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: uv run --locked tox run -e ${{ matrix.tox || format('py{0}', matrix.python) }}
+
   typing:
     runs-on: ubuntu-latest
     steps:
@@ -47,3 +48,26 @@ jobs:
           path: ./.mypy_cache
           key: mypy|${{ hashFiles('pyproject.toml') }}
       - run: uv run --locked tox run -e typing
+
+  examples:
+      name: Example (${{ matrix.example }})
+      runs-on: ubuntu-latest
+      strategy:
+        fail-fast: false
+        matrix:
+          example: [restapi, chat_app, video, blog]
+      steps:
+        - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+          with:
+            enable-cache: true
+            prune-cache: false
+        - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+          with:
+            python-version-file: pyproject.toml
+        - name: Install example deps
+          working-directory: examples/${{ matrix.example }}
+          run: uv sync --locked
+        - name: Run example tests
+          working-directory: examples/${{ matrix.example }}
+          run: uv run pytest
