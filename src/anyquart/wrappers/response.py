@@ -6,7 +6,6 @@ from collections.abc import AsyncGenerator
 from collections.abc import AsyncIterable
 from collections.abc import AsyncIterator
 from collections.abc import Iterable
-from contextlib import AbstractAsyncContextManager
 from hashlib import md5
 from io import BytesIO
 from os import PathLike
@@ -145,18 +144,16 @@ class FileBody(ResponseBody):
         if buffer_size is not None:
             self.buffer_size = buffer_size
         self.file: AsyncFile[bytes] | None = None
-        self.file_manager: AbstractAsyncContextManager | None = None
 
     async def __aenter__(self) -> FileBody:
-        self.file_manager = await async_open(self.file_path, mode="rb")
-        self.file = await self.file_manager.__aenter__()
+        self.file = await async_open(self.file_path, mode="rb")
         await self.file.seek(self.begin)
         return self
 
     async def __aexit__(
         self, exc_type: type, exc_value: BaseException, tb: TracebackType
     ) -> None:
-        await self.file_manager.__aexit__(exc_type, exc_value, tb)
+        await self.file.aclose()
 
     def __aiter__(self) -> FileBody:
         return self
