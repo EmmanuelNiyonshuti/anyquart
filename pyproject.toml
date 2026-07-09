@@ -16,7 +16,13 @@ classifiers = [
     "Framework :: Flask",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
-    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Typing :: Typed",
@@ -148,7 +154,7 @@ order-by-type = false
 
 [tool.tox]
 env_list = [
-    "py3.14", "py3.13", "py3.12", "py3.11", "py3.10",
+    "py3.15", "py3.14", "py3.13", "py3.12", "py3.11", "py3.10",
     "style",
     "typing",
     "docs",
