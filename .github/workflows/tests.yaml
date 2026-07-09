@@ -34,6 +34,7 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: ${{ matrix.python }}
+          allow-prereleases: true
       - run: uv run --locked tox run -e ${{ matrix.tox || format('py{0}', matrix.python) }}
 
   typing:
