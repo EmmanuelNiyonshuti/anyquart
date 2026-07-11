@@ -1,3 +1,10 @@
+## Version 0.2.1
+
+Unreleased
+
+- Added Python3.15 support.
+
+
 ## AnyQuart 0.2.0
 
 Released 2026-07-04

@@ -14,6 +14,10 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
+          # Before upgrading uv version, make sure astral-sh/setup-uv action knows its checksum.
+          # See: https://github.com/astral-sh/setup-uv/issues/851#issuecomment-4282017837
+          # (astral-sh/setup-uv#919 may automate this in future)
+          version: "0.11.28"
           enable-cache: true
           prune-cache: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
