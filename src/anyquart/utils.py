@@ -5,12 +5,15 @@ import os
 from collections.abc import AsyncIterator
 from collections.abc import Callable
 from collections.abc import Coroutine
+from collections.abc import Generator
 from collections.abc import Iterable
 from collections.abc import Iterator
 from functools import partial
 from functools import wraps
 from pathlib import Path
 from typing import Any
+from typing import overload
+from typing import ParamSpec
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
@@ -21,6 +24,9 @@ from .typing import FilePath
 
 if TYPE_CHECKING:
     from .wrappers.response import Response  # noqa: F401
+
+T = TypeVar("T")
+P = ParamSpec("P")
 
 
 def file_path_to_path(*paths: FilePath) -> Path:
@@ -34,7 +40,17 @@ def file_path_to_path(*paths: FilePath) -> Path:
     return Path(*safe_paths)
 
 
-def run_sync(func: Callable[..., Any]) -> Callable[..., Coroutine[None, None, Any]]:
+@overload
+def run_sync(
+    func: Callable[P, Generator[T, None, None]],
+) -> Callable[P, Coroutine[None, None, AsyncIterator[T]]]: ...
+
+
+@overload
+def run_sync(func: Callable[P, T]) -> Callable[P, Coroutine[None, None, T]]: ...
+
+
+def run_sync(func: Callable[P, Any]) -> Callable[P, Coroutine[None, None, Any]]:
     """Ensure that the sync function is run within the worker thread.
 
     This ensures that synchronous functions do not
@@ -42,7 +58,7 @@ def run_sync(func: Callable[..., Any]) -> Callable[..., Coroutine[None, None, An
     """
 
     @wraps(func)
-    async def _wrapper(*args: Any, **kwargs: Any) -> Any:
+    async def _wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
         result = await anyio.to_thread.run_sync(partial(func, *args, **kwargs))
         if inspect.isgenerator(result):
             return run_sync_iterable(result)
@@ -51,9 +67,6 @@ def run_sync(func: Callable[..., Any]) -> Callable[..., Coroutine[None, None, An
 
     _wrapper._anyquart_async_wrapper = True  # type: ignore
     return _wrapper
-
-
-T = TypeVar("T")
 
 
 class _StopIteration(Exception):  # noqa: N818
@@ -69,10 +82,6 @@ def _next(iterator: Iterator[T]) -> T:
 
 def run_sync_iterable(iterable: Iterator[T]) -> AsyncIterator[T]:
     async def _gen_wrapper() -> AsyncIterator[T]:
-        # Wrap the generator such that each iteration runs
-        # in the worker thread. Then rationalise the raised
-        # errors so that it ends.
-
         while True:
             try:
                 yield await anyio.to_thread.run_sync(_next, iterable)
