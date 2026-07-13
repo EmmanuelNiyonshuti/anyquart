@@ -3,6 +3,7 @@
 Unreleased
 
 - Added Python3.15 support.
+- Improved typing of `anyquart.utils.run_sync`.
 
 
 ## AnyQuart 0.2.0
