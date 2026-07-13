@@ -82,9 +82,6 @@ def _next(iterator: Iterator[T]) -> T:
 
 def run_sync_iterable(iterable: Iterator[T]) -> AsyncIterator[T]:
     async def _gen_wrapper() -> AsyncIterator[T]:
-        # Wrap the generator such that each iteration runs
-        # in the worker thread. Then rationalise the raised
-        # errors so that it ends
         while True:
             try:
                 yield await anyio.to_thread.run_sync(_next, iterable)
