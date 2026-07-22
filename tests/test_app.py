@@ -7,7 +7,11 @@ from unittest.mock import AsyncMock
 import pytest
 from anycorn.typing import HTTPScope
 from anycorn.typing import WebsocketScope
+from anyio import create_task_group
+from anyio import Event
 from anyio import get_cancelled_exc_class
+from anyio import sleep_forever
+from anyio.abc import TaskGroup
 from werkzeug.datastructures import Headers
 from werkzeug.exceptions import InternalServerError
 from werkzeug.wrappers import Response as WerkzeugResponse
@@ -263,17 +267,17 @@ async def test_app_after_request_handler_exception(basic_app: AnyQuart) -> None:
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("anyio_backend", ["asyncio"])
-async def test_app_handle_request_asyncio_cancelled_error(
+async def test_app_handle_request_backend_cancelled_error(
     http_scope: HTTPScope, anyio_backend: str
 ) -> None:
-    import asyncio
-
     app = AnyQuart(__name__)
+    event = Event()
+    caught_exc: BaseException | None = None
 
     @app.route("/")
     async def index() -> NoReturn:
-        raise asyncio.CancelledError()
+        event.set()
+        await sleep_forever()
 
     request = app.request_class(
         "GET",
@@ -286,20 +290,38 @@ async def test_app_handle_request_asyncio_cancelled_error(
         http_scope,
         send_push_promise=no_op_push,
     )
-    with pytest.raises(asyncio.CancelledError):
-        await app.handle_request(request)
+
+    async def runner() -> None:
+        nonlocal caught_exc
+        try:
+            await app.handle_request(request)
+        except BaseException as exc:
+            caught_exc = exc
+            raise
+
+    async def canceller(tg: TaskGroup) -> None:
+        await event.wait()
+        tg.cancel_scope.cancel()
+
+    async with create_task_group() as tg:
+        tg.start_soon(canceller, tg)
+        tg.start_soon(runner)
+
+    assert isinstance(caught_exc, get_cancelled_exc_class())
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("anyio_backend", ["asyncio"])
 async def test_app_handle_websocket_backend_cancelled_error(
-    websocket_scope: WebsocketScope, anyio_backend: str
+    websocket_scope: WebsocketScope,
 ) -> None:
     app = AnyQuart(__name__)
+    event = Event()
+    caught_exc: BaseException | None = None
 
     @app.websocket("/")
     async def index() -> NoReturn:
-        raise get_cancelled_exc_class()()
+        event.set()
+        await sleep_forever()
 
     websocket = app.websocket_class(
         "/",
@@ -315,8 +337,24 @@ async def test_app_handle_websocket_backend_cancelled_error(
         None,
         websocket_scope,
     )
-    with pytest.raises(get_cancelled_exc_class()):
-        await app.handle_websocket(websocket)
+
+    async def runner() -> None:
+        nonlocal caught_exc
+        try:
+            await app.handle_websocket(websocket)
+        except BaseException as exc:
+            caught_exc = exc
+            raise
+
+    async def canceller(tg: TaskGroup) -> None:
+        await event.wait()
+        tg.cancel_scope.cancel()
+
+    async with create_task_group() as tg:
+        tg.start_soon(canceller, tg)
+        tg.start_soon(runner)
+
+    assert isinstance(caught_exc, get_cancelled_exc_class())
 
 
 @pytest.fixture(name="session_app", scope="function")
