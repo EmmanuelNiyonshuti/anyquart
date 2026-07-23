@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
-from typing import NoReturn
 from unittest.mock import AsyncMock
 
 import pytest
@@ -275,7 +274,7 @@ async def test_app_handle_request_backend_cancelled_error(
     caught_exc: BaseException | None = None
 
     @app.route("/")
-    async def index() -> NoReturn:
+    async def index() -> None:
         event.set()
         await sleep_forever()
 
@@ -319,7 +318,7 @@ async def test_app_handle_websocket_backend_cancelled_error(
     caught_exc: BaseException | None = None
 
     @app.websocket("/")
-    async def index() -> NoReturn:
+    async def index() -> None:
         event.set()
         await sleep_forever()
 
