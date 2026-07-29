@@ -4,7 +4,11 @@ Quart runs on Asyncio and when you want to run it on Trio event loop you use [qu
 
 AnyQuart is [Quart](https://github.com/pallets/quart) running on [AnyIO](https://github.com/agronholm/anyio). It is a fork of Quart 0.20.1.
 
-
+[![Tests](https://github.com/EmmanuelNiyonshuti/anyquart/actions/workflows/tests.yaml/badge.svg)](https://github.com/EmmanuelNiyonshuti/anyquart/actions)
+[![PyPI](https://img.shields.io/pypi/v/anyquart.svg)](https://pypi.org/project/anyquart/)
+[![Python](https://img.shields.io/pypi/pyversions/anyquart.svg)](https://pypi.org/project/anyquart/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+![t](https://img.shields.io/badge/status-maintained-yellow.svg)
 
 ## Differences from Quart
 `AnyQuart` and `Quart` are essentially the same thing. The only difference is the name and the internals(Asyncio replaced with AnyIO). This also means the testing setup changes, which is explained in the [Testing](#testing) section below.
