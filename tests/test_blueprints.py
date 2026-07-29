@@ -17,7 +17,6 @@ from anyquart import websocket
 from anyquart.views import MethodView
 
 
-@pytest.mark.anyio
 async def test_blueprint_route() -> None:
     app = AnyQuart(__name__)
     blueprint = Blueprint("blueprint", __name__)
@@ -32,7 +31,6 @@ async def test_blueprint_route() -> None:
         assert request.blueprint == "blueprint"
 
 
-@pytest.mark.anyio
 async def test_blueprint_websocket() -> None:
     app = AnyQuart(__name__)
     blueprint = Blueprint("blueprint", __name__)
@@ -50,7 +48,6 @@ async def test_blueprint_websocket() -> None:
     assert cast(bytes, result) == b"blueprint"
 
 
-@pytest.mark.anyio
 async def test_blueprint_url_prefix() -> None:
     app = AnyQuart(__name__)
     blueprint = Blueprint("blueprint", __name__)
@@ -75,7 +72,6 @@ async def test_blueprint_url_prefix() -> None:
         assert request.blueprint == "blueprint"
 
 
-@pytest.mark.anyio
 async def test_empty_path_with_url_prefix() -> None:
     app = AnyQuart(__name__)
     prefix = Blueprint("prefix", __name__, url_prefix="/prefix")
@@ -92,7 +88,6 @@ async def test_empty_path_with_url_prefix() -> None:
     assert await response.get_data() == b"OK"
 
 
-@pytest.mark.anyio
 async def test_blueprint_template_filter() -> None:
     app = AnyQuart(__name__)
     blueprint = Blueprint("blueprint", __name__)
@@ -111,7 +106,6 @@ async def test_blueprint_template_filter() -> None:
     assert b"olleh" in (await response.get_data())
 
 
-@pytest.mark.anyio
 async def test_blueprint_error_handler() -> None:
     app = AnyQuart(__name__)
     blueprint = Blueprint("blueprint", __name__)
@@ -132,7 +126,6 @@ async def test_blueprint_error_handler() -> None:
     assert b"Something Unique" in (await response.get_data())
 
 
-@pytest.mark.anyio
 async def test_blueprint_method_view() -> None:
     app = AnyQuart(__name__)
     blueprint = Blueprint("blueprint", __name__)
@@ -189,7 +182,6 @@ def test_cli_blueprints(cli_group: str | None, args: list[str]) -> None:
         ("/other", "/something", "/parent", "/child"),
     ],
 )
-@pytest.mark.anyio
 async def test_nesting_url_prefixes(
     parent_init: str | None,
     child_init: str | None,
@@ -222,7 +214,6 @@ async def test_nesting_url_prefixes(
         ("parent", "child", "child.parent"),
     ],
 )
-@pytest.mark.anyio
 async def test_nesting_subdomains(
     parent_subdomain: str | None,
     child_subdomain: str | None,
@@ -247,7 +238,6 @@ async def test_nesting_subdomains(
     assert response.status_code == 200
 
 
-@pytest.mark.anyio
 async def test_nesting_and_sibling() -> None:
     app = AnyQuart(__name__)
 
@@ -285,7 +275,6 @@ def test_unique_blueprint_names() -> None:
     app.register_blueprint(bp, name="alt")
 
 
-@pytest.mark.anyio
 async def test_nested_blueprint() -> None:
     app = AnyQuart(__name__)
 
@@ -352,7 +341,6 @@ async def test_nested_blueprint() -> None:
     ) == b"Grandchild no"
 
 
-@pytest.mark.anyio
 async def test_blueprint_renaming() -> None:
     app = AnyQuart(__name__)
 
@@ -396,7 +384,6 @@ def test_self_registration() -> None:
         bp.register_blueprint(bp)
 
 
-@pytest.mark.anyio
 async def test_nested_callback_order() -> None:
     app = AnyQuart(__name__)
 

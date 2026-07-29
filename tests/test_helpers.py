@@ -65,7 +65,6 @@ def host_matched_app() -> AnyQuart:
     return app
 
 
-@pytest.mark.anyio
 async def test_make_response(app: AnyQuart) -> None:
     async with app.app_context():
         response = await make_response("foo", 202)
@@ -73,7 +72,6 @@ async def test_make_response(app: AnyQuart) -> None:
         assert b"foo" in (await response.get_data())  # type: ignore
 
 
-@pytest.mark.anyio
 async def test_flash(app: AnyQuart) -> None:
     async with app.test_request_context("/"):
         await flash("message")
@@ -81,7 +79,6 @@ async def test_flash(app: AnyQuart) -> None:
         assert get_flashed_messages() == ["message"]
 
 
-@pytest.mark.anyio
 async def test_flash_category(app: AnyQuart) -> None:
     async with app.test_request_context("/"):
         await flash("bar", "error")
@@ -96,7 +93,6 @@ async def test_flash_category(app: AnyQuart) -> None:
         ]
 
 
-@pytest.mark.anyio
 async def test_flash_category_filter(app: AnyQuart) -> None:
     async with app.test_request_context("/"):
         await flash("bar", "error")
@@ -105,7 +101,6 @@ async def test_flash_category_filter(app: AnyQuart) -> None:
         assert get_flashed_messages(category_filter=["error"]) == ["bar"]
 
 
-@pytest.mark.anyio
 async def test_url_for(app: AnyQuart) -> None:
     async with app.test_request_context("/"):
         assert url_for("index") == "/"
@@ -113,14 +108,12 @@ async def test_url_for(app: AnyQuart) -> None:
         assert url_for("resource", id=5) == "/resource/5"
 
 
-@pytest.mark.anyio
 async def test_url_for_host_matching(host_matched_app: AnyQuart) -> None:
     async with host_matched_app.app_context():
         assert url_for("index", _external=True) == "http:///"
         assert url_for("host", _external=True) == "http://anyquart.com/"
 
 
-@pytest.mark.anyio
 async def test_url_for_external(app: AnyQuart) -> None:
     async with app.test_request_context("/"):
         assert url_for("index") == "/"
@@ -135,7 +128,6 @@ async def test_url_for_external(app: AnyQuart) -> None:
         assert url_for("index", _external=False) == "/"
 
 
-@pytest.mark.anyio
 async def test_url_for_scheme(app: AnyQuart) -> None:
     async with app.test_request_context("/"):
         assert url_for("index", _scheme="https") == "https://localhost/"
@@ -146,14 +138,12 @@ async def test_url_for_scheme(app: AnyQuart) -> None:
         )
 
 
-@pytest.mark.anyio
 async def test_url_for_anchor(app: AnyQuart) -> None:
     async with app.test_request_context("/"):
         assert url_for("index", _anchor="&foo") == "/#&foo"
         assert url_for("resource", id=5, _anchor="&foo") == "/resource/5#&foo"
 
 
-@pytest.mark.anyio
 async def test_url_for_blueprint_relative(app: AnyQuart) -> None:
     blueprint = Blueprint("blueprint", __name__)
 
@@ -168,7 +158,6 @@ async def test_url_for_blueprint_relative(app: AnyQuart) -> None:
         assert url_for("index") == "/"
 
 
-@pytest.mark.anyio
 async def test_url_for_root_path(app: AnyQuart) -> None:
     async with app.test_request_context("/", root_path="/bob"):
         assert url_for("index") == "/bob/"
@@ -176,7 +165,6 @@ async def test_url_for_root_path(app: AnyQuart) -> None:
         assert url_for("resource", id=5) == "/bob/resource/5"
 
 
-@pytest.mark.anyio
 async def test_stream_with_context() -> None:
     app = AnyQuart(__name__)
 
@@ -196,13 +184,11 @@ async def test_stream_with_context() -> None:
     assert result == b"GET /"
 
 
-@pytest.mark.anyio
 async def test_send_from_directory_raises() -> None:
     with pytest.raises(NotFound):
         await send_from_directory(str(ROOT_PATH), "no_file.no")
 
 
-@pytest.mark.anyio
 async def test_send_file_path(tmp_path: Path) -> None:
     app = AnyQuart(__name__)
     file_ = tmp_path / "send.img"
@@ -212,7 +198,6 @@ async def test_send_file_path(tmp_path: Path) -> None:
     assert (await response.get_data(as_text=False)) == file_.read_bytes()
 
 
-@pytest.mark.anyio
 async def test_send_file_bytes_io() -> None:
     app = AnyQuart(__name__)
     io_stream = BytesIO(b"something")
@@ -221,7 +206,6 @@ async def test_send_file_bytes_io() -> None:
     assert (await response.get_data(as_text=False)) == b"something"
 
 
-@pytest.mark.anyio
 async def test_send_file_no_mimetype() -> None:
     app = AnyQuart(__name__)
     async with app.app_context():
@@ -229,7 +213,6 @@ async def test_send_file_no_mimetype() -> None:
             await send_file(BytesIO(b"something"))
 
 
-@pytest.mark.anyio
 async def test_send_file_as_attachment(tmp_path: Path) -> None:
     app = AnyQuart(__name__)
     file_ = tmp_path / "send.img"
@@ -239,7 +222,6 @@ async def test_send_file_as_attachment(tmp_path: Path) -> None:
     assert response.headers["content-disposition"] == "attachment; filename=send.img"
 
 
-@pytest.mark.anyio
 async def test_send_file_as_attachment_name(tmp_path: Path) -> None:
     app = AnyQuart(__name__)
     file_ = tmp_path / "send.img"
@@ -251,7 +233,6 @@ async def test_send_file_as_attachment_name(tmp_path: Path) -> None:
     assert response.headers["content-disposition"] == "attachment; filename=send.html"
 
 
-@pytest.mark.anyio
 async def test_send_file_mimetype(tmp_path: Path) -> None:
     app = AnyQuart(__name__)
     file_ = tmp_path / "send.bob"
@@ -262,7 +243,6 @@ async def test_send_file_mimetype(tmp_path: Path) -> None:
     assert response.headers["Content-Type"] == "application/bob"
 
 
-@pytest.mark.anyio
 async def test_send_file_last_modified(tmp_path: Path) -> None:
     app = AnyQuart(__name__)
     file_ = tmp_path / "send.img"
@@ -274,7 +254,6 @@ async def test_send_file_last_modified(tmp_path: Path) -> None:
     assert response.last_modified == mtime
 
 
-@pytest.mark.anyio
 async def test_send_file_last_modified_override(tmp_path: Path) -> None:
     app = AnyQuart(__name__)
     file_ = tmp_path / "send.img"
@@ -285,7 +264,6 @@ async def test_send_file_last_modified_override(tmp_path: Path) -> None:
     assert response.last_modified == last_modified
 
 
-@pytest.mark.anyio
 async def test_send_file_max_age(tmp_path: Path) -> None:
     app = AnyQuart(__name__)
     file_ = tmp_path / "send.img"

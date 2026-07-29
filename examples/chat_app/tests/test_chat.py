@@ -1,8 +1,6 @@
 import anyio
-import pytest
 
 
-@pytest.mark.anyio
 async def test_websocket(test_client) -> None:
     async with test_client.websocket("/ws") as test_websocket:
         send, receive = anyio.create_memory_object_stream(1)

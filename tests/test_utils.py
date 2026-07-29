@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections.abc import Generator
 
-import pytest
 from werkzeug.datastructures import Headers
 
 from anyquart.utils import decode_headers
@@ -18,7 +17,6 @@ def test_decode_headers() -> None:
     assert decode_headers([(b"foo", b"Bar")]) == Headers({"Foo": "Bar"})
 
 
-@pytest.mark.anyio
 async def test_run_sync_iterable() -> None:
     def gen() -> Generator[int]:
         yield from range(4)

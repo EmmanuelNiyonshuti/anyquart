@@ -32,14 +32,12 @@ def blueprint() -> Blueprint:
     return blueprint
 
 
-@pytest.mark.anyio
 async def test_template_render(app: AnyQuart) -> None:
     async with app.app_context():
         rendered = await render_template_string("{{ foo }}", foo="bar")
     assert rendered == "bar"
 
 
-@pytest.mark.anyio
 async def test_default_template_context(app: AnyQuart) -> None:
     async with app.app_context():
         g.foo = "bar"
@@ -53,7 +51,6 @@ async def test_default_template_context(app: AnyQuart) -> None:
     assert rendered == "GET / bar"
 
 
-@pytest.mark.anyio
 async def test_template_context_processors(app: AnyQuart, blueprint: Blueprint) -> None:
     @blueprint.context_processor
     async def blueprint_context() -> dict:
@@ -83,7 +80,6 @@ async def test_template_context_processors(app: AnyQuart, blueprint: Blueprint) 
     assert rendered == "bar boo"
 
 
-@pytest.mark.anyio
 async def test_template_globals(app: AnyQuart, blueprint: Blueprint) -> None:
     @blueprint.app_template_global()
     def blueprint_global(value: str) -> str:
@@ -102,7 +98,6 @@ async def test_template_globals(app: AnyQuart, blueprint: Blueprint) -> None:
     assert rendered == "bar FOO"
 
 
-@pytest.mark.anyio
 async def test_template_filters(app: AnyQuart, blueprint: Blueprint) -> None:
     @blueprint.app_template_filter()
     def blueprint_filter(value: str) -> str:
@@ -123,7 +118,6 @@ async def test_template_filters(app: AnyQuart, blueprint: Blueprint) -> None:
     assert rendered == "APP"
 
 
-@pytest.mark.anyio
 async def test_template_tests(app: AnyQuart, blueprint: Blueprint) -> None:
     @blueprint.app_template_test()
     def blueprint_test(value: int) -> bool:
@@ -146,7 +140,6 @@ async def test_template_tests(app: AnyQuart, blueprint: Blueprint) -> None:
     assert rendered == "bar"
 
 
-@pytest.mark.anyio
 async def test_simple_stream(app: AnyQuart) -> None:
     @app.get("/")
     async def index() -> ResponseReturnValue:

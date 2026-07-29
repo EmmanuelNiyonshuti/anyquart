@@ -26,7 +26,6 @@ async def _fill_body(body: Body, semaphore: Semaphore, limit: int) -> None:
     body.set_complete()
 
 
-@pytest.mark.anyio
 async def test_full_body() -> None:
     body = Body(None, None)
     limit = 3
@@ -36,7 +35,6 @@ async def test_full_body() -> None:
     assert b"012" == await body
 
 
-@pytest.mark.anyio
 async def test_body_streaming() -> None:
     body = Body(None, None)
     limit = 3
@@ -55,7 +53,6 @@ async def test_body_streaming() -> None:
     assert b"" == await body
 
 
-@pytest.mark.anyio
 async def test_body_stream_single_chunk() -> None:
     body = Body(None, None)
     body.append(b"data")
@@ -69,7 +66,6 @@ async def test_body_stream_single_chunk() -> None:
         await _check_data()
 
 
-@pytest.mark.anyio
 async def test_body_streaming_no_data() -> None:
     body = Body(None, None)
     semaphore = Semaphore(0)
@@ -82,7 +78,6 @@ async def test_body_streaming_no_data() -> None:
     assert b"" == await body
 
 
-@pytest.mark.anyio
 async def test_body_exceeds_max_content_length() -> None:
     max_content_length = 5
     body = Body(None, max_content_length)
@@ -91,7 +86,6 @@ async def test_body_exceeds_max_content_length() -> None:
         await body
 
 
-@pytest.mark.anyio
 async def test_request_exceeds_max_content_length(http_scope: HTTPScope) -> None:
     max_content_length = 5
     headers = Headers()
@@ -112,7 +106,6 @@ async def test_request_exceeds_max_content_length(http_scope: HTTPScope) -> None
         await request.get_data()
 
 
-@pytest.mark.anyio
 async def test_request_get_data_timeout(http_scope: HTTPScope) -> None:
     request = Request(
         "POST",
@@ -134,7 +127,6 @@ async def test_request_get_data_timeout(http_scope: HTTPScope) -> None:
     "method, expected",
     [("GET", ["b", "c"]), ("POST", ["b", "c", "d"])],
 )
-@pytest.mark.anyio
 async def test_request_values(
     method: str, expected: list[str], http_scope: HTTPScope
 ) -> None:
@@ -159,7 +151,6 @@ async def test_request_values(
     assert (await request.values).getlist("a") == expected
 
 
-@pytest.mark.anyio
 async def test_request_send_push_promise(http_scope: HTTPScope) -> None:
     push_promise: tuple[str, Headers] = None
 
