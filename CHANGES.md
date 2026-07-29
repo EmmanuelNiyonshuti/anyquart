@@ -1,6 +1,6 @@
-## Version 0.2.1
+## AnyQuart 0.2.1
 
-Unreleased
+Released 2026-07-29
 
 - Added Python3.15 support.
 - Improved typing of `anyquart.utils.run_sync`.
