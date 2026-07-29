@@ -87,7 +87,6 @@ def app() -> AnyQuart:
 
 
 @pytest.mark.parametrize("path", ["/", "/sync/"])
-@pytest.mark.anyio
 async def test_index(path: str, app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get(path)
@@ -95,14 +94,12 @@ async def test_index(path: str, app: AnyQuart) -> None:
     assert b"index" in (await response.get_data())
 
 
-@pytest.mark.anyio
 async def test_iri(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/❤️")
     assert "💔".encode() in (await response.get_data())
 
 
-@pytest.mark.anyio
 async def test_options(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.options("/")
@@ -114,7 +111,6 @@ async def test_options(app: AnyQuart) -> None:
     }
 
 
-@pytest.mark.anyio
 async def test_json(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.post("/json/", json={"value": "json"})
@@ -122,7 +118,6 @@ async def test_json(app: AnyQuart) -> None:
     assert b'{"value":"json"}\n' == (await response.get_data())
 
 
-@pytest.mark.anyio
 async def test_implicit_json(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.post("/implicit_json/", json={"value": "json"})
@@ -130,7 +125,6 @@ async def test_implicit_json(app: AnyQuart) -> None:
     assert b'{"value":"json"}\n' == (await response.get_data())
 
 
-@pytest.mark.anyio
 async def test_implicit_json_list(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.post("/implicit_json/", json=["a", 2])
@@ -138,7 +132,6 @@ async def test_implicit_json_list(app: AnyQuart) -> None:
     assert b'["a",2]\n' == (await response.get_data())
 
 
-@pytest.mark.anyio
 async def test_werkzeug(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/werkzeug/")
@@ -146,7 +139,6 @@ async def test_werkzeug(app: AnyQuart) -> None:
     assert b"Hello" == (await response.get_data())
 
 
-@pytest.mark.anyio
 async def test_generic_error(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/error/")
@@ -154,7 +146,6 @@ async def test_generic_error(app: AnyQuart) -> None:
     assert b"Something Unique" in (await response.get_data())
 
 
-@pytest.mark.anyio
 async def test_url_defaults(app: AnyQuart) -> None:
     @app.url_defaults
     def defaults(_: str, values: dict) -> None:
@@ -164,7 +155,6 @@ async def test_url_defaults(app: AnyQuart) -> None:
         assert url_for("param") == "/param/hello"
 
 
-@pytest.mark.anyio
 async def test_not_found_error(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/not_found/")
@@ -172,7 +162,6 @@ async def test_not_found_error(app: AnyQuart) -> None:
     assert b"Not Found" in (await response.get_data())
 
 
-@pytest.mark.anyio
 async def test_make_response_str(app: AnyQuart) -> None:
     response = await app.make_response("Result")
     assert response.status_code == 200
@@ -190,7 +179,6 @@ async def test_make_response_str(app: AnyQuart) -> None:
     assert response.headers["name"] == "value"
 
 
-@pytest.mark.anyio
 async def test_make_response_response(app: AnyQuart) -> None:
     response = await app.make_response(Response("Result"))
     assert response.status_code == 200
@@ -207,7 +195,6 @@ async def test_make_response_response(app: AnyQuart) -> None:
     assert response.headers["name"] == "value"
 
 
-@pytest.mark.anyio
 async def test_make_response_errors(app: AnyQuart) -> None:
     with pytest.raises(TypeError):
         await app.make_response(("Result", {"name": "value"}, 200))  # type: ignore
@@ -217,7 +204,6 @@ async def test_make_response_errors(app: AnyQuart) -> None:
         await app.make_response(("Result",))  # type: ignore
 
 
-@pytest.mark.anyio
 async def test_websocket(app: AnyQuart) -> None:
     test_client = app.test_client()
     data = b"bob"
@@ -227,7 +213,6 @@ async def test_websocket(app: AnyQuart) -> None:
     assert cast(bytes, result) == data
 
 
-@pytest.mark.anyio
 async def test_websocket_abort(app: AnyQuart) -> None:
     test_client = app.test_client()
     try:
@@ -237,7 +222,6 @@ async def test_websocket_abort(app: AnyQuart) -> None:
         assert error.response.status_code == 401
 
 
-@pytest.mark.anyio
 async def test_root_path(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/", root_path="/bob")
@@ -246,7 +230,6 @@ async def test_root_path(app: AnyQuart) -> None:
     assert response.status_code == 200
 
 
-@pytest.mark.anyio
 async def test_stream(app: AnyQuart) -> None:
     test_client = app.test_client()
     response = await test_client.get("/stream")

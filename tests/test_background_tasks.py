@@ -2,14 +2,12 @@ from __future__ import annotations
 
 import time
 
-import pytest
 from anyio import sleep
 
 from anyquart import AnyQuart
 from anyquart import current_app
 
 
-@pytest.mark.anyio
 async def test_background_task() -> None:
     app = AnyQuart(__name__)
     app.config["DATA"] = "data"
@@ -33,7 +31,6 @@ async def test_background_task() -> None:
     assert data == "data"
 
 
-@pytest.mark.anyio
 async def test_lifespan_background_task() -> None:
     app = AnyQuart(__name__)
     app.config["DATA"] = "data"
@@ -55,7 +52,6 @@ async def test_lifespan_background_task() -> None:
     assert data == "data"
 
 
-@pytest.mark.anyio
 async def test_sync_background_task() -> None:
     app = AnyQuart(__name__)
     app.config["DATA"] = "data"

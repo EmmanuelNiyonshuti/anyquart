@@ -97,6 +97,7 @@ testpaths = ["tests"]
 filterwarnings = [
     "error",
 ]
+anyio_mode = "auto"
 
 [tool.coverage.run]
 branch = true

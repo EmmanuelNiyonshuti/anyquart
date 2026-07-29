@@ -12,6 +12,7 @@ dependencies = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+anyio_mode = "auto"
 
 [tool.uv.sources]
 anyquart = { path = "../../", editable = true }

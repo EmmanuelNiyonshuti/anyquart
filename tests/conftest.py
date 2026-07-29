@@ -11,7 +11,7 @@ from anycorn.typing import WebsocketScope
         pytest.param("trio", id="trio"),
     ]
 )
-async def anyio_backend(request: pytest.FixtureRequest) -> None:
+def anyio_backend(request: pytest.FixtureRequest) -> None:
     return request.param
 
 

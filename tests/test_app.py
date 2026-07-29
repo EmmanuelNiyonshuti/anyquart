@@ -130,7 +130,6 @@ def test_add_url_rule_automatic_options(
     )
 
 
-@pytest.mark.anyio
 async def test_host_matching() -> None:
     app = AnyQuart(__name__, static_host="anyquart.com", host_matching=True)
 
@@ -146,7 +145,6 @@ async def test_host_matching() -> None:
     assert response.status_code == 404
 
 
-@pytest.mark.anyio
 async def test_subdomain() -> None:
     app = AnyQuart(__name__, subdomain_matching=True)
     app.config["SERVER_NAME"] = "anyquart.com"
@@ -187,7 +185,6 @@ async def test_subdomain() -> None:
         (int, None, True),
     ],
 )
-@pytest.mark.anyio
 async def test_make_response(
     result: ResponseReturnValue, expected: Response | WerkzeugResponse, raises: bool
 ) -> None:
@@ -222,14 +219,12 @@ def _basic_app() -> AnyQuart:
     return app
 
 
-@pytest.mark.anyio
 async def test_app_route_exception(basic_app: AnyQuart) -> None:
     test_client = basic_app.test_client()
     response = await test_client.get("/exception/")
     assert response.status_code == 500
 
 
-@pytest.mark.anyio
 async def test_app_before_request_exception(basic_app: AnyQuart) -> None:
     @basic_app.before_request
     def before() -> None:
@@ -240,7 +235,6 @@ async def test_app_before_request_exception(basic_app: AnyQuart) -> None:
     assert response.status_code == 500
 
 
-@pytest.mark.anyio
 async def test_app_after_request_exception(basic_app: AnyQuart) -> None:
     @basic_app.after_request
     def after(_: ResponseTypes) -> None:
@@ -251,7 +245,6 @@ async def test_app_after_request_exception(basic_app: AnyQuart) -> None:
     assert response.status_code == 500
 
 
-@pytest.mark.anyio
 async def test_app_after_request_handler_exception(basic_app: AnyQuart) -> None:
     @basic_app.after_request
     def after(_: ResponseTypes) -> None:
@@ -262,7 +255,6 @@ async def test_app_after_request_handler_exception(basic_app: AnyQuart) -> None:
     assert response.status_code == 500
 
 
-@pytest.mark.anyio
 @pytest.mark.parametrize("anyio_backend", ["asyncio"])
 async def test_app_handle_request_asyncio_cancelled_error(
     http_scope: HTTPScope, anyio_backend: str
@@ -290,7 +282,6 @@ async def test_app_handle_request_asyncio_cancelled_error(
         await app.handle_request(request)
 
 
-@pytest.mark.anyio
 @pytest.mark.parametrize("anyio_backend", ["asyncio"])
 async def test_app_handle_websocket_backend_cancelled_error(
     websocket_scope: WebsocketScope, anyio_backend: str
@@ -345,7 +336,6 @@ def _session_app() -> AnyQuart:
     return app
 
 
-@pytest.mark.anyio
 async def test_app_session(session_app: AnyQuart) -> None:
     test_client = session_app.test_client()
     await test_client.get("/")
@@ -353,7 +343,6 @@ async def test_app_session(session_app: AnyQuart) -> None:
     session_app.session_interface.save_session.assert_called()  # type: ignore
 
 
-@pytest.mark.anyio
 async def test_app_session_websocket(session_app: AnyQuart) -> None:
     test_client = session_app.test_client()
     async with test_client.websocket("/ws/") as test_websocket:
@@ -362,7 +351,6 @@ async def test_app_session_websocket(session_app: AnyQuart) -> None:
     session_app.session_interface.save_session.assert_called()  # type: ignore
 
 
-@pytest.mark.anyio
 async def test_app_session_websocket_return(session_app: AnyQuart) -> None:
     test_client = session_app.test_client()
     async with test_client.websocket("/ws_return/") as test_websocket:
@@ -381,7 +369,6 @@ async def test_app_session_websocket_return(session_app: AnyQuart) -> None:
         (True, True, True),
     ],
 )
-@pytest.mark.anyio
 async def test_propagation(
     debug: bool, testing: bool, raises: bool, http_scope: HTTPScope
 ) -> None:
@@ -415,7 +402,6 @@ async def test_propagation(
         assert response.status_code == 500
 
 
-@pytest.mark.anyio
 async def test_test_app() -> None:
     startup = False
     shutdown = False

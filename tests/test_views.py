@@ -18,7 +18,6 @@ def app() -> AnyQuart:
     return app
 
 
-@pytest.mark.anyio
 async def test_view(app: AnyQuart) -> None:
     class Views(View):
         methods = ["GET", "POST"]
@@ -37,7 +36,6 @@ async def test_view(app: AnyQuart) -> None:
     assert response.status_code == 405
 
 
-@pytest.mark.anyio
 async def test_method_view(app: AnyQuart) -> None:
     class Views(MethodView):
         async def get(self) -> ResponseReturnValue:
@@ -55,7 +53,6 @@ async def test_method_view(app: AnyQuart) -> None:
     assert "POST" == (await response.get_data(as_text=True))
 
 
-@pytest.mark.anyio
 async def test_view_decorators(app: AnyQuart) -> None:
     def decorate_status_code(func: Callable) -> Callable:
         async def wrapper(*args: Any, **kwargs: Any) -> ResponseReturnValue:
