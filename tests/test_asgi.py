@@ -4,10 +4,6 @@ from unittest.mock import AsyncMock
 from unittest.mock import Mock
 
 import pytest
-from anycorn.typing import ASGIReceiveEvent
-from anycorn.typing import ASGISendEvent
-from anycorn.typing import HTTPScope
-from anycorn.typing import WebsocketScope
 from anyio import create_memory_object_stream
 from anyio import create_task_group
 from anyio import fail_after
@@ -18,6 +14,10 @@ from anyquart.asgi import _convert_version
 from anyquart.asgi import _handle_exception
 from anyquart.asgi import ASGIHTTPConnection
 from anyquart.asgi import ASGIWebsocketConnection
+from anyquart.typing import ASGIReceiveEvent
+from anyquart.typing import ASGISendEvent
+from anyquart.typing import HTTPScope
+from anyquart.typing import WebSocketScope
 from anyquart.utils import encode_headers
 
 
@@ -28,7 +28,7 @@ async def test_http_1_0_host_header(headers: list, expected: str) -> None:
     app = AnyQuart(__name__)
     scope: HTTPScope = {
         "type": "http",
-        "asgi": {},
+        "asgi": {"spec_version": "2.0", "version": "3.0"},
         "http_version": "1.0",
         "method": "GET",
         "scheme": "https",
@@ -40,7 +40,7 @@ async def test_http_1_0_host_header(headers: list, expected: str) -> None:
         "client": ("127.0.0.1", 80),
         "server": None,
         "extensions": {},
-        "state": {},  # type: ignore[typeddict-item]
+        "state": {},
     }
     connection = ASGIHTTPConnection(app, scope)
     request = connection._create_request_from_scope(lambda: None)  # type: ignore
@@ -52,7 +52,7 @@ async def test_http_completion() -> None:
     app = AnyQuart(__name__)
     scope: HTTPScope = {
         "type": "http",
-        "asgi": {},
+        "asgi": {"spec_version": "2.0", "version": "3.0"},
         "http_version": "1.1",
         "method": "GET",
         "scheme": "https",
@@ -64,7 +64,7 @@ async def test_http_completion() -> None:
         "client": ("127.0.0.1", 80),
         "server": None,
         "extensions": {},
-        "state": {},  # type: ignore[typeddict-item]
+        "state": {},
     }
     connection = ASGIHTTPConnection(app, scope)
 
@@ -99,7 +99,7 @@ async def test_http_request_without_body(request_message: ASGIReceiveEvent) -> N
 
     scope: HTTPScope = {
         "type": "http",
-        "asgi": {},
+        "asgi": {"spec_version": "2.0", "version": "3.0"},
         "http_version": "1.0",
         "method": "GET",
         "scheme": "https",
@@ -111,7 +111,7 @@ async def test_http_request_without_body(request_message: ASGIReceiveEvent) -> N
         "client": ("127.0.0.1", 80),
         "server": None,
         "extensions": {},
-        "state": {},  # type: ignore[typeddict-item]
+        "state": {},
     }
     connection = ASGIHTTPConnection(app, scope)
     request = connection._create_request_from_scope(lambda: None)  # type: ignore
@@ -141,9 +141,9 @@ async def test_http_request_without_body(request_message: ASGIReceiveEvent) -> N
 async def test_websocket_completion() -> None:
     # Ensure that the connecion callable returns on completion
     app = AnyQuart(__name__)
-    scope: WebsocketScope = {
+    scope: WebSocketScope = {
         "type": "websocket",
-        "asgi": {},
+        "asgi": {"spec_version": "2.0", "version": "3.0"},
         "http_version": "1.1",
         "scheme": "wss",
         "path": "/",
@@ -155,7 +155,7 @@ async def test_websocket_completion() -> None:
         "server": None,
         "subprotocols": [],
         "extensions": {"websocket.http.response": {}},
-        "state": {},  # type: ignore[typeddict-item]
+        "state": {},
     }
     connection = ASGIWebsocketConnection(app, scope)
 
@@ -182,7 +182,7 @@ def test_http_path_from_absolute_target() -> None:
     app = AnyQuart(__name__)
     scope: HTTPScope = {
         "type": "http",
-        "asgi": {},
+        "asgi": {"spec_version": "2.0", "version": "3.0"},
         "http_version": "1.1",
         "method": "GET",
         "scheme": "https",
@@ -194,7 +194,7 @@ def test_http_path_from_absolute_target() -> None:
         "client": ("127.0.0.1", 80),
         "server": None,
         "extensions": {},
-        "state": {},  # type: ignore[typeddict-item]
+        "state": {},
     }
     connection = ASGIHTTPConnection(app, scope)
     request = connection._create_request_from_scope(lambda: None)  # type: ignore
@@ -209,7 +209,7 @@ def test_http_path_with_root_path(path: str, expected: str) -> None:
     app = AnyQuart(__name__)
     scope: HTTPScope = {
         "type": "http",
-        "asgi": {},
+        "asgi": {"spec_version": "2.0", "version": "3.0"},
         "http_version": "1.1",
         "method": "GET",
         "scheme": "https",
@@ -221,7 +221,7 @@ def test_http_path_with_root_path(path: str, expected: str) -> None:
         "client": ("127.0.0.1", 80),
         "server": None,
         "extensions": {},
-        "state": {},  # type: ignore[typeddict-item]
+        "state": {},
     }
     connection = ASGIHTTPConnection(app, scope)
     request = connection._create_request_from_scope(lambda: None)  # type: ignore
@@ -230,9 +230,9 @@ def test_http_path_with_root_path(path: str, expected: str) -> None:
 
 def test_websocket_path_from_absolute_target() -> None:
     app = AnyQuart(__name__)
-    scope: WebsocketScope = {
+    scope: WebSocketScope = {
         "type": "websocket",
-        "asgi": {},
+        "asgi": {"spec_version": "2.0", "version": "3.0"},
         "http_version": "1.1",
         "scheme": "wss",
         "path": "ws://anyquart/path",
@@ -244,7 +244,7 @@ def test_websocket_path_from_absolute_target() -> None:
         "server": None,
         "subprotocols": [],
         "extensions": {"websocket.http.response": {}},
-        "state": {},  # type: ignore[typeddict-item]
+        "state": {},
     }
     connection = ASGIWebsocketConnection(app, scope)
 
@@ -261,9 +261,9 @@ def test_websocket_path_from_absolute_target() -> None:
 )
 def test_websocket_path_with_root_path(path: str, expected: str) -> None:
     app = AnyQuart(__name__)
-    scope: WebsocketScope = {
+    scope: WebSocketScope = {
         "type": "websocket",
-        "asgi": {},
+        "asgi": {"spec_version": "2.0", "version": "3.0"},
         "http_version": "1.1",
         "scheme": "wss",
         "path": path,
@@ -275,7 +275,7 @@ def test_websocket_path_with_root_path(path: str, expected: str) -> None:
         "server": None,
         "subprotocols": [],
         "extensions": {"websocket.http.response": {}},
-        "state": {},  # type: ignore[typeddict-item]
+        "state": {},
     }
     connection = ASGIWebsocketConnection(app, scope)
     send_stream, receive_stream = create_memory_object_stream[int](2)
@@ -316,7 +316,7 @@ async def test_websocket_accept_connection(
 
 
 async def test_websocket_accept_connection_warns(
-    websocket_scope: WebsocketScope,
+    websocket_scope: WebSocketScope,
 ) -> None:
     connection = ASGIWebsocketConnection(AnyQuart(__name__), websocket_scope)
 

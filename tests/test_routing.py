@@ -3,11 +3,11 @@ from __future__ import annotations
 import warnings
 
 import pytest
-from anycorn.typing import HTTPScope
 from werkzeug.datastructures import Headers
 
 from anyquart.routing import AnyQuartMap
 from anyquart.testing import no_op_push
+from anyquart.typing import HTTPScope
 from anyquart.wrappers.request import Request
 
 

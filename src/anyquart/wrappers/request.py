@@ -8,7 +8,6 @@ from typing import Literal
 from typing import NoReturn
 from typing import overload
 
-from anycorn.typing import HTTPScope
 from anyio import Event
 from anyio import fail_after
 from anyio import Lock
@@ -19,6 +18,8 @@ from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import BadRequest
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.exceptions import RequestTimeout
+
+from anyquart.typing import HTTPScope
 
 from ..datastructures import FileStorage
 from ..formparser import FormDataParser

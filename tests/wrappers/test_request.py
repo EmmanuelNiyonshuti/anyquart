@@ -4,7 +4,6 @@ from urllib.parse import urlencode
 
 import anyio
 import pytest
-from anycorn.typing import HTTPScope
 from anyio import create_task_group
 from anyio import fail_after
 from anyio import Semaphore
@@ -13,6 +12,7 @@ from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.exceptions import RequestTimeout
 
 from anyquart.testing import no_op_push
+from anyquart.typing import HTTPScope
 from anyquart.wrappers.request import Body
 from anyquart.wrappers.request import Request
 

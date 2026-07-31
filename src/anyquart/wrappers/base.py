@@ -3,9 +3,10 @@ from __future__ import annotations
 from typing import Any
 from typing import TYPE_CHECKING
 
-from anycorn.typing import WWWScope
 from werkzeug.datastructures import Headers
 from werkzeug.sansio.request import Request as SansIORequest
+
+from anyquart.typing import WWWScope
 
 from .. import json
 

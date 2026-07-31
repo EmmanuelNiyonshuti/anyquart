@@ -4,9 +4,10 @@ from collections.abc import Callable
 from typing import Any
 from typing import AnyStr
 
-from anycorn.typing import WebsocketScope
 from anyio import sleep
 from werkzeug.datastructures import Headers
+
+from anyquart.typing import WebSocketScope
 
 from .base import BaseRequestWebsocket
 
@@ -25,7 +26,7 @@ class Websocket(BaseRequestWebsocket):
         send: Callable,
         accept: Callable,
         close: Callable,
-        scope: WebsocketScope,
+        scope: WebSocketScope,
     ) -> None:
         """Create a request object.
 

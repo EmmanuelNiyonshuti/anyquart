@@ -6,15 +6,16 @@ from typing import Any
 from typing import AnyStr
 from typing import TYPE_CHECKING
 
-from anycorn.typing import ASGIReceiveEvent
-from anycorn.typing import ASGISendEvent
-from anycorn.typing import HTTPScope
-from anycorn.typing import WebsocketScope
 from anyio import ClosedResourceError
 from anyio import create_memory_object_stream
 from anyio import create_task_group
 from anyio.abc import TaskGroup
 from werkzeug.datastructures import Headers
+
+from anyquart.typing import ASGIReceiveEvent
+from anyquart.typing import ASGISendEvent
+from anyquart.typing import HTTPScope
+from anyquart.typing import WebSocketScope
 
 from ..json import dumps
 from ..json import loads
@@ -128,7 +129,7 @@ class TestHTTPConnection:
 
 
 class TestWebsocketConnection:
-    def __init__(self, app: AnyQuart, scope: WebsocketScope) -> None:
+    def __init__(self, app: AnyQuart, scope: WebSocketScope) -> None:
         self.accepted = False
         self.app = app
         self.headers: Headers | None = None
@@ -193,7 +194,9 @@ class TestWebsocketConnection:
     async def close(self, code: int) -> None: ...
 
     async def disconnect(self) -> None:
-        await self._server_send.send({"type": "websocket.disconnect", "code": None})
+        await self._server_send.send(
+            {"type": "websocket.disconnect", "code": None, "reason": None}
+        )
         await self._server_send.aclose()
 
     async def _asgi_receive(self) -> ASGIReceiveEvent:

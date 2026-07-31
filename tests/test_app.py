@@ -4,8 +4,6 @@ from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock
 
 import pytest
-from anycorn.typing import HTTPScope
-from anycorn.typing import WebsocketScope
 from anyio import create_task_group
 from anyio import Event
 from anyio import get_cancelled_exc_class
@@ -22,8 +20,10 @@ from anyquart.sessions import SecureCookieSession
 from anyquart.sessions import SessionInterface
 from anyquart.testing import no_op_push
 from anyquart.testing import WebsocketResponseError
+from anyquart.typing import HTTPScope
 from anyquart.typing import ResponseReturnValue
 from anyquart.typing import ResponseTypes
+from anyquart.typing import WebSocketScope
 from anyquart.wrappers import Request
 from anyquart.wrappers import Response
 
@@ -302,7 +302,7 @@ async def test_app_handle_request_backend_cancelled_error(
 
 
 async def test_app_handle_websocket_backend_cancelled_error(
-    websocket_scope: WebsocketScope,
+    websocket_scope: WebSocketScope,
 ) -> None:
     app = AnyQuart(__name__)
     event = Event()

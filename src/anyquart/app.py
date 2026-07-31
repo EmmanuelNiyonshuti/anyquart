@@ -25,9 +25,6 @@ from typing import TypeVar
 from urllib.parse import quote
 
 import anyio
-from anycorn.typing import ASGIReceiveCallable
-from anycorn.typing import ASGISendCallable
-from anycorn.typing import Scope
 from anyio import AsyncFile
 from anyio import create_task_group
 from anyio import current_time
@@ -49,6 +46,10 @@ from werkzeug.routing import BuildError
 from werkzeug.routing import MapAdapter
 from werkzeug.routing import RoutingException
 from werkzeug.wrappers import Response as WerkzeugResponse
+
+from anyquart.typing import ASGIReceiveCallable
+from anyquart.typing import ASGISendCallable
+from anyquart.typing import Scope
 
 from .asgi import ASGIHTTPConnection
 from .asgi import ASGILifespan
@@ -871,7 +872,11 @@ class AnyQuart(App):
 
         async with create_task_group() as tg:
             tg.start_soon(watch_signals)
-            await serve(self, config, shutdown_trigger=shutdown_event.wait)
+            await serve(
+                self,  # type: ignore[arg-type]
+                config,
+                shutdown_trigger=shutdown_event.wait,
+            )
             tg.cancel_scope.cancel()
 
     def test_client(
