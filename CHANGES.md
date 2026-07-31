@@ -1,3 +1,11 @@
+## Version 0.3.0
+
+Unreleased
+
+- Removed anycorn as a required dependency and made it optional dependency:
+  - Added asgiref types replacing asgi types that was imported from anycorn.
+
+
 ## AnyQuart 0.2.1
 
 Released 2026-07-29
