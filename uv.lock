@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -49,7 +49,6 @@ name = "anyquart"
 version = "0.2.1"
 source = { editable = "." }
 dependencies = [
-    { name = "anycorn" },
     { name = "anyio" },
     { name = "blinker" },
     { name = "click" },
@@ -64,6 +63,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+anycorn = [
+    { name = "anycorn" },
+]
 dotenv = [
     { name = "python-dotenv" },
 ]
@@ -97,7 +99,7 @@ typing = [
 
 [package.metadata]
 requires-dist = [
-    { name = "anycorn", specifier = ">=0.11.2" },
+    { name = "anycorn", marker = "extra == 'anycorn'", specifier = ">=0.11.2" },
     { name = "anyio", specifier = ">=4.14.0,<5" },
     { name = "blinker", specifier = ">=1.6" },
     { name = "click", specifier = ">=8.0" },
@@ -110,7 +112,7 @@ requires-dist = [
     { name = "typing-extensions", marker = "python_full_version < '3.13'" },
     { name = "werkzeug", specifier = ">=3.0" },
 ]
-provides-extras = ["dotenv"]
+provides-extras = ["dotenv", "anycorn"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -390,7 +392,7 @@ name = "exceptiongroup"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", version = "4.15.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "typing-extensions", version = "4.15.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749, upload-time = "2025-05-10T17:42:51.123Z" }
 wheels = [
@@ -428,8 +430,8 @@ name = "gha-update"
 version = "0.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "click" },
-    { name = "httpx" },
+    { name = "click", marker = "python_full_version >= '3.12'" },
+    { name = "httpx", marker = "python_full_version >= '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d5/ac/f1b6699a529bd298a777199861a8232590bb612eac92e15bf1033134f123/gha_update-0.1.0.tar.gz", hash = "sha256:8c0f55ed7bdc11fb061d67984814fd642bd3a1872028e34c15c913cd59202d53", size = 3345, upload-time = "2024-08-23T20:58:42.478Z" }
 wheels = [
@@ -472,8 +474,8 @@ name = "httpcore"
 version = "1.0.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "certifi" },
-    { name = "h11" },
+    { name = "certifi", marker = "python_full_version >= '3.12'" },
+    { name = "h11", marker = "python_full_version >= '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/06/94/82699a10bca87a5556c9c59b5963f2d039dbd239f25bc2a63907a05a14cb/httpcore-1.0.9.tar.gz", hash = "sha256:6e34463af53fd2ab5d807f399a9b45ea31c3dfa2276f15a2c3f00afff6e176e8", size = 85484, upload-time = "2025-04-24T22:06:22.219Z" }
 wheels = [
@@ -485,10 +487,10 @@ name = "httpx"
 version = "0.28.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "anyio" },
-    { name = "certifi" },
-    { name = "httpcore" },
-    { name = "idna" },
+    { name = "anyio", marker = "python_full_version >= '3.12'" },
+    { name = "certifi", marker = "python_full_version >= '3.12'" },
+    { name = "httpcore", marker = "python_full_version >= '3.12'" },
+    { name = "idna", marker = "python_full_version >= '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/b1/df/48c586a5fe32a0f01324ee087459e112ebb7224f646c0b5023f5e79e9956/httpx-0.28.1.tar.gz", hash = "sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc", size = 141406, upload-time = "2024-12-06T15:37:23.222Z" }
 wheels = [
@@ -596,7 +598,7 @@ name = "importlib-metadata"
 version = "9.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "zipp" },
+    { name = "zipp", marker = "python_full_version < '3.15'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a9/01/15bb152d77b21318514a96f43af312635eb2500c96b55398d020c93d86ea/importlib_metadata-9.0.0.tar.gz", hash = "sha256:a4f57ab599e6a2e3016d7595cfd72eb4661a5106e787a95bcc90c7105b831efc", size = 56405, upload-time = "2026-03-20T06:42:56.999Z" }
 wheels = [
