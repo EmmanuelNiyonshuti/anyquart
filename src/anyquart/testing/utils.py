@@ -9,9 +9,6 @@ from typing import TYPE_CHECKING
 from urllib.parse import unquote
 from urllib.parse import urlencode
 
-from anycorn.typing import HTTPScope
-from anycorn.typing import Scope
-from anycorn.typing import WebsocketScope
 from werkzeug.datastructures import Authorization
 from werkzeug.datastructures import Headers
 from werkzeug.sansio.multipart import Data
@@ -21,6 +18,10 @@ from werkzeug.sansio.multipart import File
 from werkzeug.sansio.multipart import MultipartEncoder
 from werkzeug.sansio.multipart import Preamble
 from werkzeug.urls import iri_to_uri
+
+from anyquart.typing import HTTPScope
+from anyquart.typing import Scope
+from anyquart.typing import WebSocketScope
 
 from ..datastructures import FileStorage
 from ..json import dumps
@@ -179,7 +180,7 @@ def make_test_scope(
     scope_base: dict | None,
     *,
     _preserve_context: bool = False,
-) -> WebsocketScope: ...
+) -> WebSocketScope: ...
 
 
 def make_test_scope(

@@ -37,7 +37,6 @@ dependencies = [
     "blinker>=1.6",
     "click>=8.0",
     "flask>=3.0",
-    "anycorn>=0.11.2",
     "importlib-metadata; python_version < '3.13'",
     "itsdangerous",
     "jinja2",
@@ -53,6 +52,7 @@ Source = "https://github.com/EmmanuelNiyonshuti/anyquart"
 
 [project.optional-dependencies]
 dotenv = ["python-dotenv"]
+anycorn = ["anycorn>=0.11.2"]
 
 [project.scripts]
 anyquart = "anyquart.cli:main"
@@ -78,6 +78,7 @@ tests = [
     "pytest-cov",
     "pytest-sugar",
     "python-dotenv",
+    "anycorn>=0.11.2" # need in typing ci job
 ]
 typing = [
     "mypy",

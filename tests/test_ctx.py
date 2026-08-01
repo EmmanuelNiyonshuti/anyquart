@@ -4,7 +4,6 @@ from typing import cast
 from unittest.mock import Mock
 
 import pytest
-from anycorn.typing import HTTPScope
 from anyio import create_task_group
 from werkzeug.datastructures import Headers
 from werkzeug.exceptions import BadRequest
@@ -24,6 +23,7 @@ from anyquart.globals import websocket
 from anyquart.routing import AnyQuartRule
 from anyquart.testing import make_test_headers_path_and_query_string
 from anyquart.testing import no_op_push
+from anyquart.typing import HTTPScope
 from anyquart.wrappers import Request
 
 

@@ -4,14 +4,15 @@ from contextlib import AbstractAsyncContextManager
 from types import TracebackType
 from typing import TYPE_CHECKING
 
-from anycorn.typing import ASGIReceiveEvent
-from anycorn.typing import ASGISendEvent
-from anycorn.typing import LifespanScope
 from anyio import create_memory_object_stream
 from anyio import create_task_group
 from anyio import Event
 from anyio import fail_after
 from anyio.abc import TaskGroup
+
+from anyquart.typing import ASGIReceiveEvent
+from anyquart.typing import ASGISendEvent
+from anyquart.typing import LifespanScope
 
 from ..typing import TestClientProtocol
 
@@ -50,7 +51,7 @@ class TestApp:
         entered_tg = await self._tg_cm.__aenter__()
         scope: LifespanScope = {
             "type": "lifespan",
-            "asgi": {"spec_version": "2.0"},
+            "asgi": {"spec_version": "2.0", "version": "3.0"},
             "state": {},
         }
         entered_tg.start_soon(self.app, scope, self._asgi_receive, self._asgi_send)

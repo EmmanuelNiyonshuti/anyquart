@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import pytest
-from anycorn.typing import HTTPScope
-from anycorn.typing import WebsocketScope
+
+from anyquart.typing import HTTPScope
+from anyquart.typing import WebSocketScope
 
 
 @pytest.fixture(
@@ -19,7 +20,7 @@ def anyio_backend(request: pytest.FixtureRequest) -> None:
 def _http_scope() -> HTTPScope:
     return {
         "type": "http",
-        "asgi": {},
+        "asgi": {"spec_version": "2.0", "version": "3.0"},
         "http_version": "1.1",
         "method": "GET",
         "scheme": "https",
@@ -34,16 +35,16 @@ def _http_scope() -> HTTPScope:
         ],
         "client": ("127.0.0.1", 80),
         "server": None,
-        "state": {},  # type: ignore[typeddict-item]
+        "state": {},
         "extensions": {},
     }
 
 
 @pytest.fixture(name="websocket_scope")
-def _websocket_scope() -> WebsocketScope:
+def _websocket_scope() -> WebSocketScope:
     return {
         "type": "websocket",
-        "asgi": {},
+        "asgi": {"spec_version": "2.0", "version": "3.0"},
         "http_version": "1.1",
         "scheme": "https",
         "path": "/",
@@ -58,6 +59,6 @@ def _websocket_scope() -> WebsocketScope:
         "client": ("127.0.0.1", 80),
         "server": None,
         "subprotocols": [],
-        "state": {},  # type: ignore[typeddict-item]
+        "state": {},
         "extensions": {},
     }

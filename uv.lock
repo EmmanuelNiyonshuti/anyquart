@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -50,7 +50,6 @@ name = "anyquart"
 version = "0.2.1"
 source = { editable = "." }
 dependencies = [
-    { name = "anycorn" },
     { name = "anyio" },
     { name = "blinker" },
     { name = "click" },
@@ -65,6 +64,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+anycorn = [
+    { name = "anycorn" },
+]
 dotenv = [
     { name = "python-dotenv" },
 ]
@@ -84,6 +86,7 @@ pre-commit = [
     { name = "pre-commit-uv" },
 ]
 tests = [
+    { name = "anycorn" },
     { name = "hypothesis" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -98,7 +101,7 @@ typing = [
 
 [package.metadata]
 requires-dist = [
-    { name = "anycorn", specifier = ">=0.11.2" },
+    { name = "anycorn", marker = "extra == 'anycorn'", specifier = ">=0.11.2" },
     { name = "anyio", specifier = ">=4.14.0,<5" },
     { name = "blinker", specifier = ">=1.6" },
     { name = "click", specifier = ">=8.0" },
@@ -111,7 +114,7 @@ requires-dist = [
     { name = "typing-extensions", marker = "python_full_version < '3.13'" },
     { name = "werkzeug", specifier = ">=3.0" },
 ]
-provides-extras = ["dotenv"]
+provides-extras = ["dotenv", "anycorn"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -126,6 +129,7 @@ pre-commit = [
     { name = "pre-commit-uv" },
 ]
 tests = [
+    { name = "anycorn", specifier = ">=0.11.2" },
     { name = "hypothesis" },
     { name = "pytest" },
     { name = "pytest-cov" },

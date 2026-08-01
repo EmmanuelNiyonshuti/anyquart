@@ -7,21 +7,6 @@ from typing import cast
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
-from anycorn.typing import ASGIReceiveCallable
-from anycorn.typing import ASGISendCallable
-from anycorn.typing import HTTPResponseBodyEvent
-from anycorn.typing import HTTPResponseStartEvent
-from anycorn.typing import HTTPScope
-from anycorn.typing import LifespanScope
-from anycorn.typing import LifespanShutdownCompleteEvent
-from anycorn.typing import LifespanShutdownFailedEvent
-from anycorn.typing import LifespanStartupCompleteEvent
-from anycorn.typing import LifespanStartupFailedEvent
-from anycorn.typing import WebsocketAcceptEvent
-from anycorn.typing import WebsocketCloseEvent
-from anycorn.typing import WebsocketResponseBodyEvent
-from anycorn.typing import WebsocketResponseStartEvent
-from anycorn.typing import WebsocketScope
 from anyio import create_memory_object_stream
 from anyio import create_task_group
 from anyio import fail_after
@@ -31,14 +16,30 @@ from anyio.abc import TaskGroup
 from werkzeug.datastructures import Headers
 from werkzeug.wrappers import Response as WerkzeugResponse
 
+from anyquart.typing import ASGIReceiveCallable
+from anyquart.typing import ASGISendCallable
+from anyquart.typing import HTTPResponseBodyEvent
+from anyquart.typing import HTTPResponseStartEvent
+from anyquart.typing import HTTPScope
+from anyquart.typing import LifespanScope
+from anyquart.typing import LifespanShutdownCompleteEvent
+from anyquart.typing import LifespanShutdownFailedEvent
+from anyquart.typing import LifespanStartupCompleteEvent
+from anyquart.typing import LifespanStartupFailedEvent
+from anyquart.typing import WebSocketAcceptEvent
+from anyquart.typing import WebSocketCloseEvent
+from anyquart.typing import WebSocketResponseBodyEvent
+from anyquart.typing import WebSocketResponseStartEvent
+from anyquart.typing import WebSocketScope
+
 from .debug import traceback_response
 from .signals import websocket_received
 from .signals import websocket_sent
 from .typing import ResponseTypes
 from .utils import encode_headers
-from .wrappers import Request  # noqa: F401
-from .wrappers import Response  # noqa: F401
-from .wrappers import Websocket  # noqa: F401
+from .wrappers import Request
+from .wrappers import Response
+from .wrappers import Websocket
 
 if TYPE_CHECKING:
     from .app import AnyQuart  # noqa: F401
@@ -180,7 +181,7 @@ class ASGIHTTPConnection:
 
 
 class ASGIWebsocketConnection:
-    def __init__(self, app: AnyQuart, scope: WebsocketScope) -> None:
+    def __init__(self, app: AnyQuart, scope: WebSocketScope) -> None:
         self.app = app
         self.scope = scope
         self._accepted = False
@@ -270,7 +271,7 @@ class ASGIWebsocketConnection:
                 ]
                 await send(
                     cast(
-                        WebsocketResponseStartEvent,
+                        WebSocketResponseStartEvent,
                         {
                             "type": "websocket.http.response.start",
                             "status": response.status_code,
@@ -282,7 +283,7 @@ class ASGIWebsocketConnection:
                     for data in response.response:
                         await send(
                             cast(
-                                WebsocketResponseBodyEvent,
+                                WebSocketResponseBodyEvent,
                                 {
                                     "type": "websocket.http.response.body",
                                     "body": data,
@@ -295,7 +296,7 @@ class ASGIWebsocketConnection:
                         async for data in body:
                             await send(
                                 cast(
-                                    WebsocketResponseBodyEvent,
+                                    WebSocketResponseBodyEvent,
                                     {
                                         "type": "websocket.http.response.body",
                                         "body": data,
@@ -305,7 +306,7 @@ class ASGIWebsocketConnection:
                             )
                 await send(
                     cast(
-                        WebsocketResponseBodyEvent,
+                        WebSocketResponseBodyEvent,
                         {
                             "type": "websocket.http.response.body",
                             "body": b"",
@@ -315,11 +316,11 @@ class ASGIWebsocketConnection:
                 )
             elif not self._closed:
                 await send(
-                    cast(WebsocketCloseEvent, {"type": "websocket.close", "code": 1000})
+                    cast(WebSocketCloseEvent, {"type": "websocket.close", "code": 1000})
                 )
         elif self._accepted and not self._closed:
             await send(
-                cast(WebsocketCloseEvent, {"type": "websocket.close", "code": 1000})
+                cast(WebSocketCloseEvent, {"type": "websocket.close", "code": 1000})
             )
 
         tg.cancel_scope.cancel()
@@ -335,7 +336,7 @@ class ASGIWebsocketConnection:
         self, send: ASGISendCallable, headers: Headers, subprotocol: str | None
     ) -> None:
         if not self._accepted:
-            message: WebsocketAcceptEvent = {
+            message: WebSocketAcceptEvent = {
                 "headers": [],
                 "subprotocol": subprotocol,
                 "type": "websocket.accept",

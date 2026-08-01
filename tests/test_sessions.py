@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from http.cookies import SimpleCookie
 
-from anycorn.typing import HTTPScope
 from werkzeug.datastructures import Headers
 
 from anyquart.app import AnyQuart
 from anyquart.sessions import SecureCookieSession
 from anyquart.sessions import SecureCookieSessionInterface
 from anyquart.testing import no_op_push
+from anyquart.typing import HTTPScope
 from anyquart.wrappers import Request
 from anyquart.wrappers import Response
 
