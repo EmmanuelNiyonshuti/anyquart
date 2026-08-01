@@ -14,7 +14,7 @@ AnyQuart is [Quart](https://github.com/pallets/quart) running on [AnyIO](https:/
 `AnyQuart` and `Quart` are essentially the same thing. The only difference is the name and the internals(Asyncio replaced with AnyIO). This also means the testing setup changes, which is explained in the [Testing](#testing) section below.
 
 - Works with both asyncio and Trio code via AnyIO, giving you structured concurrency out of the box.
-- Uses [Anycorn](https://github.com/davidbrochart/anycorn) as an optional dependency for its development server while Quart uses Hypercorn as its development server(Quart installs this dependency by default).
+- As of 0.3.0, [Anycorn](https://github.com/davidbrochart/anycorn) is an optional dependency for the development server, while Quart installs [Hypercorn](https://hypercorn.readthedocs.io) as a required dependency for the same purpose.
 - [aiofiles](https://github.com/Tinche/aiofiles) dropped, AnyIO's file I/O is used instead.
 - [pytest-asyncio](https://github.com/pytest-dev/pytest-asyncio) replaced by [AnyIO pytest plugin](https://anyio.readthedocs.io/en/stable/testing.html).
 - Runs on Python 3.10+
@@ -49,8 +49,7 @@ async def ws():
         await websocket.send("hello")
         await websocket.send_json({"hello": "world"})
 ```
-Install an asgi web server, install one from [this list](https://asgi.readthedocs.io/en/latest/implementations.html)
-or you can install anyquart with anycorn:
+Install an ASGI web server, pick one from [this list](https://asgi.readthedocs.io/en/latest/implementations.html), or install anyquart with Anycorn directly:
 ```bash
 $ uv add anyquart[anycorn]
 ```
@@ -59,6 +58,7 @@ run the application:
 $ anycorn app:app
  * [2026-08-01 11:49:46 +0200] [30809] [INFO] Running on http://127.0.0.1:8000 (CTRL + C to quit)
 ```
+The built-in `anyquart run` command is only available on anyquart <= 0.2.1 — from 0.3.0 onward, run the ASGI server directly as shown above.
 
 # Testing
 Pytest requires a plugin to run asynchronous test functions and fixtures.
