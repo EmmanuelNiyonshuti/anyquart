@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import os
 import signal
 import sys
@@ -12,7 +11,7 @@ from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager
 from datetime import timedelta
 from inspect import isasyncgen
-from inspect import iscoroutinefunction as _inspect_iscoroutinefunction
+from inspect import iscoroutinefunction
 from inspect import isgenerator
 from types import TracebackType
 from typing import Any
@@ -125,15 +124,6 @@ from .wrappers import BaseRequestWebsocket
 from .wrappers import Request
 from .wrappers import Response
 from .wrappers import Websocket
-
-# Python 3.14 deprecated asyncio.iscoroutinefunction, but suggested
-# inspect.iscoroutinefunction does not work correctly in some Python
-# versions before 3.12.
-# See https://github.com/python/cpython/issues/122858#issuecomment-2466239748
-if sys.version_info >= (3, 12):
-    iscoroutinefunction = _inspect_iscoroutinefunction
-else:
-    iscoroutinefunction = asyncio.iscoroutinefunction
 
 AppOrBlueprintKey = str | None  # The App key is None, whereas blueprints are named
 T_after_serving = TypeVar("T_after_serving", bound=AfterServingCallable)
@@ -784,15 +774,6 @@ class AnyQuart(App):
         app_import_path: str | None = None,
         **kwargs: Any,
     ) -> None:
-        try:
-            import anycorn  # noqa 401
-        except ImportError:
-            raise RuntimeError("""Install ASGI webserver to run in development mode
-                                  e.g: `uv add anyquart[anycorn]
-                                or choose one from this list https://asgi.readthedocs.io/en/latest/implementations.html
-                                """) from None
-        from anycorn.config import Config as HyperConfig
-
         """Run this application. This is best used for development only,
         See from the list: https://asgi.readthedocs.io/en/latest/implementations.html
         for production servers.
@@ -807,6 +788,13 @@ class AnyQuart(App):
             certfile: Path to the SSL certificate file.
             keyfile: Path to the SSL key file.
         """
+        try:
+            from anycorn.config import Config as HyperConfig
+        except ImportError:
+            raise RuntimeError("""Install ASGI webserver to run in development mode
+                                  e.g: `uv add anyquart[anycorn]
+                                or choose one from this list https://asgi.readthedocs.io/en/latest/implementations.html
+                                """) from None
         if kwargs:
             warnings.warn(
                 f"Additional arguments, {','.join(kwargs.keys())}, are not supported.\n"
