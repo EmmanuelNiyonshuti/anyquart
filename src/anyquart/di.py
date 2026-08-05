@@ -11,6 +11,7 @@ from collections.abc import Generator
 from dataclasses import dataclass
 from functools import partial
 from typing import Any
+from typing import overload
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
@@ -35,6 +36,11 @@ _dependency_map_cache: weakref.WeakKeyDictionary[
 ] = weakref.WeakKeyDictionary()
 
 if TYPE_CHECKING:
+
+    @overload
+    def Needs(dependency: Callable[Any, Any, _T]) -> _T: ...
+    @overload
+    def Needs(dependency: Callable[..., _T]) -> _T: ...
 
     def Needs(dependency: Callable[..., _T]) -> _T: ...  # noqa: N802
 else:
