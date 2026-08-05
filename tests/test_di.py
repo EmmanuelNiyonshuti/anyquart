@@ -181,7 +181,7 @@ async def test_concurrent_requests_are_isolated(app: AnyQuart) -> None:
     started: list[int] = []
     resolved: list[int] = []
     gate = anyio.Event()
-    results: list[bytes] = []
+    results: list[bytes | str] = []
 
     async def get_session() -> int:
         started.append(1)

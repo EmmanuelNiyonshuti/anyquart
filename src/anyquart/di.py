@@ -11,12 +11,16 @@ from collections.abc import Generator
 from dataclasses import dataclass
 from functools import partial
 from typing import Any
+from typing import TYPE_CHECKING
+from typing import TypeVar
 
 from anyio import CancelScope
 from anyio import to_thread
 
 if typing.TYPE_CHECKING:
     from .app import AnyQuart
+
+_T = TypeVar("_T")
 
 # Matches the converter portions of a URL rule so that we can extract the
 # variable names (e.g. ``<int:user_id>`` yields ``user_id``).
@@ -30,19 +34,23 @@ _dependency_map_cache: weakref.WeakKeyDictionary[
     Callable[..., Any], dict[str, Callable[..., Any]]
 ] = weakref.WeakKeyDictionary()
 
+if TYPE_CHECKING:
 
-@dataclass(frozen=True)
-class Needs:
-    """Mark a handler or dependency parameter as a request-scoped dependency.
-    Arguments:
-        dependency: The callable that produces the value for the marked
-            parameter.  It may itself declare ``Needs``-marked parameters
-            (sub-dependencies), be synchronous or asynchronous, and be a plain
-            function or a generator (with the code after ``yield`` run as
-            teardown after the handler completes).
-    """
+    def Needs(dependency: Callable[..., _T]) -> _T: ...  # noqa: N802
+else:
 
-    dependency: Callable[..., Any]
+    @dataclass(frozen=True)
+    class Needs:
+        """Mark a handler or dependency parameter as a request-scoped dependency.
+        Arguments:
+            dependency: The callable that produces the value for the marked
+                parameter.  It may itself declare ``Needs``-marked parameters
+                (sub-dependencies), be synchronous or asynchronous, and be a plain
+                function or a generator (with the code after ``yield`` run as
+                teardown after the handler completes).
+        """
+
+        dependency: Callable[..., Any]
 
 
 def build_route_handler_dependency_map(
