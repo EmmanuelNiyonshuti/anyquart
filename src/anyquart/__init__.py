@@ -13,6 +13,7 @@ from .ctx import copy_current_websocket_context as copy_current_websocket_contex
 from .ctx import has_app_context as has_app_context
 from .ctx import has_request_context as has_request_context
 from .ctx import has_websocket_context as has_websocket_context
+from .di import Needs as Needs
 from .globals import current_app as current_app
 from .globals import g as g
 from .globals import request as request

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from anyquart import AnyQuart
 from anyquart.typing import HTTPScope
 from anyquart.typing import WebSocketScope
 
@@ -14,6 +15,11 @@ from anyquart.typing import WebSocketScope
 )
 def anyio_backend(request: pytest.FixtureRequest) -> None:
     return request.param
+
+
+@pytest.fixture
+def app() -> AnyQuart:
+    return AnyQuart(__name__)
 
 
 @pytest.fixture(name="http_scope")

@@ -13,11 +13,32 @@ AnyQuart is [Quart](https://github.com/pallets/quart) running on [AnyIO](https:/
 ## Differences from Quart
 `AnyQuart` and `Quart` are essentially the same thing. The only difference is the name and the internals(Asyncio replaced with AnyIO). This also means the testing setup changes, which is explained in the [Testing](#testing) section below.
 
-- Works with both asyncio and Trio code via AnyIO, giving you structured concurrency out of the box.
-- As of 0.3.0, [Anycorn](https://github.com/davidbrochart/anycorn) is an optional dependency for the development server, while Quart installs [Hypercorn](https://hypercorn.readthedocs.io) as a required dependency for the same purpose.
-- [aiofiles](https://github.com/Tinche/aiofiles) dropped, AnyIO's file I/O is used instead.
-- [pytest-asyncio](https://github.com/pytest-dev/pytest-asyncio) replaced by [AnyIO pytest plugin](https://anyio.readthedocs.io/en/stable/testing.html).
-- Runs on Python 3.10+
+1. Works with both asyncio and Trio code via AnyIO, giving you structured concurrency out of the box.
+2. [aiofiles](https://github.com/Tinche/aiofiles) dropped, AnyIO's file I/O is used instead.
+3. [pytest-asyncio](https://github.com/pytest-dev/pytest-asyncio) replaced by [AnyIO pytest plugin](https://anyio.readthedocs.io/en/stable/testing.html).
+4. As of 0.3.0, [Anycorn](https://github.com/davidbrochart/anycorn) is an optional dependency for the development server, while Quart installs [Hypercorn](https://hypercorn.readthedocs.io) as a required dependency for the same purpose.
+5. As of 0.3.0, AnyQuart provides a Request-scoped dependency injection for route handlers.
+Request handlers may mark parameters with :class:`Needs` to resolve a request-scoped value.
+e.g:
+    ```python
+    from anyquart import Needs
+
+    async def get_db() -> AsyncGenerator[AsyncSession, None]:
+        async with async_session() as session:
+            yield session
+
+    @app.route("/users")
+    async def get_users(db: AsyncSession = Needs(get_db)) -> None:
+        ...
+
+    # Or:
+    DBSession = Annotated[AsyncSession, Needs(get_db)]
+
+    @app.route("/users")
+    async def get_users(db: DBSession) -> None:
+        ...
+    ```
+6. Runs on Python 3.10+
 
 ## Usage
 You will have to replace `quart` with `anyquart` and `Quart` with `AnyQuart`.
