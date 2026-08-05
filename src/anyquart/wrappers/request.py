@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Generator
+from dataclasses import dataclass
 from typing import Any
 from typing import Literal
 from typing import NoReturn
@@ -414,3 +415,17 @@ class Request(BaseRequestWebsocket):
     async def close(self) -> None:
         for _key, value in iter_multi_items(self._files or ()):
             value.close()
+
+
+@dataclass(frozen=True)
+class Needs:
+    """Mark a handler or dependency parameter as a request-scoped dependency.
+    Arguments:
+        dependency: The callable that produces the value for the marked
+            parameter.  It may itself declare ``Needs``-marked parameters
+            (sub-dependencies), be synchronous or asynchronous, and be a plain
+            function or a generator (with the code after ``yield`` run as
+            teardown after the handler completes).
+    """
+
+    dependency: Callable[..., Any]

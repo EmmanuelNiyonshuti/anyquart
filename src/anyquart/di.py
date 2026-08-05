@@ -8,15 +8,14 @@ from collections.abc import AsyncGenerator
 from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Generator
-from dataclasses import dataclass
 from functools import partial
 from typing import Any
-from typing import overload
-from typing import TYPE_CHECKING
 from typing import TypeVar
 
 from anyio import CancelScope
 from anyio import to_thread
+
+from anyquart.wrappers import request
 
 if typing.TYPE_CHECKING:
     from .app import AnyQuart
@@ -35,28 +34,9 @@ _dependency_map_cache: weakref.WeakKeyDictionary[
     Callable[..., Any], dict[str, Callable[..., Any]]
 ] = weakref.WeakKeyDictionary()
 
-if TYPE_CHECKING:
 
-    @overload
-    def Needs(dependency: Callable[Any, Any, _T]) -> _T: ...
-    @overload
-    def Needs(dependency: Callable[..., _T]) -> _T: ...
-
-    def Needs(dependency: Callable[..., _T]) -> _T: ...  # noqa: N802
-else:
-
-    @dataclass(frozen=True)
-    class Needs:
-        """Mark a handler or dependency parameter as a request-scoped dependency.
-        Arguments:
-            dependency: The callable that produces the value for the marked
-                parameter.  It may itself declare ``Needs``-marked parameters
-                (sub-dependencies), be synchronous or asynchronous, and be a plain
-                function or a generator (with the code after ``yield`` run as
-                teardown after the handler completes).
-        """
-
-        dependency: Callable[..., Any]
+def Needs(dependency: Callable[..., Any]) -> Any:  # noqa 802
+    return request.Needs(dependency=dependency)
 
 
 def build_route_handler_dependency_map(
@@ -101,7 +81,7 @@ def build_route_handler_dependency_map(
             continue
 
         default = parameter.default
-        if isinstance(default, Needs):
+        if isinstance(default, request.Needs):
             result[name] = default.dependency
             continue
 
@@ -248,13 +228,13 @@ class _Resolver:
         self._teardowns.clear()
 
 
-def _marker_from_annotation(annotation: Any) -> Needs | None:
+def _marker_from_annotation(annotation: Any) -> request.Needs | None:
     if annotation is inspect.Parameter.empty:
         return None
     if typing.get_origin(annotation) is not typing.Annotated:
         return None
     for metadata in typing.get_args(annotation)[1:]:
-        if isinstance(metadata, Needs):
+        if isinstance(metadata, request.Needs):
             return metadata
     return None
 
