@@ -10,7 +10,6 @@ from collections.abc import Callable
 from collections.abc import Generator
 from functools import partial
 from typing import Any
-from typing import TypeVar
 
 from anyio import CancelScope
 from anyio import to_thread
@@ -20,7 +19,6 @@ from anyquart.wrappers import request
 if typing.TYPE_CHECKING:
     from .app import AnyQuart
 
-_T = TypeVar("_T")
 
 # Matches the converter portions of a URL rule so that we can extract the
 # variable names (e.g. ``<int:user_id>`` yields ``user_id``).
