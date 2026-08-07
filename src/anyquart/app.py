@@ -61,6 +61,8 @@ from .ctx import has_request_context
 from .ctx import has_websocket_context
 from .ctx import RequestContext
 from .ctx import WebsocketContext
+from .di import check_name_conflicts
+from .di import invoke_with_di
 from .globals import _cv_app
 from .globals import _cv_request
 from .globals import _cv_websocket
@@ -334,6 +336,10 @@ class AnyQuart(App):
         self.cli = AppGroup()
         self.cli.name = self.name
 
+        # overrides route handler's dependencies, useful for tests for replacing
+        # expensive dependency
+        self.dependency_overrides: dict[Callable[..., Any], Callable[..., Any]] = {}
+
         if self.has_static_folder:
             assert bool(static_host) == host_matching, (
                 "Invalid static_host/host_matching combination"
@@ -561,6 +567,42 @@ class AnyQuart(App):
             scheme = "https" if self.config["PREFER_SECURE_URLS"] else "http"
             return self.url_map.bind(self.config["SERVER_NAME"], url_scheme=scheme)
         return None
+
+    @setupmethod
+    def add_url_rule(
+        self,
+        rule: str,
+        endpoint: str | None = None,
+        view_func: Callable[..., Any] | None = None,
+        provide_automatic_options: bool | None = None,
+        **options: Any,
+    ) -> None:
+        """Register a rule for routing incoming requests and building URLs.
+
+        In addition to the default behaviour this raises
+        :exc:`ValueError` at registration time if any parameter of the view
+        function is marked as a :class:`~anyquart.di.Needs` dependency but its
+        name also appears as a URL rule converter in ``rule``, since the two
+        sources would otherwise clobber one another when dispatching.
+
+        Arguments:
+            rule: The URL rule string.
+            endpoint: The endpoint name to associate with the rule
+                and view function.
+            view_func: The view function to associate with the
+                endpoint name.
+            provide_automatic_options: Add the ``OPTIONS`` method and
+                respond to ``OPTIONS`` requests automatically.
+        """
+        if view_func is not None:
+            check_name_conflicts(view_func, rule, options.get("defaults"))
+        super().add_url_rule(
+            rule,
+            endpoint,
+            view_func,
+            provide_automatic_options,
+            **options,
+        )
 
     def websocket(
         self,
@@ -1541,7 +1583,7 @@ class AnyQuart(App):
             return await self.make_default_options_response()
 
         handler = self.view_functions[request_.url_rule.endpoint]
-        return await self.ensure_async(handler)(**request_.view_args)  # type: ignore[return-value]
+        return await invoke_with_di(self, handler, request_.view_args)
 
     async def dispatch_websocket(
         self, websocket_context: WebsocketContext | None = None
