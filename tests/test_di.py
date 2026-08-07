@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import time
 from collections.abc import AsyncGenerator
 from typing import Annotated
@@ -16,14 +14,6 @@ from anyquart.di import build_route_handler_dependency_map
 from anyquart.di import rule_arguments
 
 
-async def dummy_dep() -> str:
-    return "dummy-value"
-
-
-# can't have this local to test functions. see: PEP 563
-DummyDep = Annotated[str, Needs(dummy_dep)]
-
-
 def test_rule_arguments() -> None:
     assert rule_arguments("/") == set()
     assert rule_arguments("/users/<int:user_id>") == {"user_id"}
@@ -31,6 +21,9 @@ def test_rule_arguments() -> None:
 
 
 def test_build_route_handler_deps_default_value() -> None:
+    def dummy_dep() -> str:
+        return "dummy-value"
+
     async def handler(value: str = Needs(dummy_dep)) -> str:
         return value
 
@@ -38,13 +31,18 @@ def test_build_route_handler_deps_default_value() -> None:
 
 
 def test_build_route_handler_annotated_dep() -> None:
+    def dummy_dep() -> str:
+        return "dummy-value"
+
+    DummyDep = Annotated[str, Needs(dummy_dep)]  # noqa 806
+
     async def handler(value: DummyDep) -> str:
         return value
 
     assert build_route_handler_dependency_map(handler) == {"value": dummy_dep}
 
 
-def test_build_route_handler_deps_map_without_handler() -> None:
+def test_build_route_handler_deps_map_without_deps() -> None:
     async def handler(user_id: int, value: str = "default") -> str:
         return value
 
@@ -90,6 +88,11 @@ async def test_single_dependency_default_value_style(app: AnyQuart) -> None:
 
 
 async def test_single_annotated_dependency(app: AnyQuart) -> None:
+    def dummy_dep() -> str:
+        return "dummy-value"
+
+    DummyDep = Annotated[str, Needs(dummy_dep)]  # noqa 806
+
     @app.route("/")
     async def index(value: DummyDep) -> str:
         return value
@@ -121,6 +124,11 @@ async def test_nested_dependencies(app: AnyQuart) -> None:
 
 
 async def test_annotated_and_default_deps_mixed(app: AnyQuart) -> None:
+    def dummy_dep() -> str:
+        return "dummy-value"
+
+    DummyDep = Annotated[str, Needs(dummy_dep)]  # noqa 806
+
     async def dummy_dep_two() -> str:
         return "default"
 
@@ -393,3 +401,27 @@ async def test_route_without_di_unaffected(app: AnyQuart) -> None:
     response = await client.get("/plain/ok")
     assert response.status_code == 200
     assert b"plain-ok" == (await response.get_data())
+
+
+async def test_override_only_affects_targeted_dependency(app: AnyQuart) -> None:
+    async def get_user_id() -> str:
+        return "real-id"
+
+    async def get_role() -> str:
+        return "real-role"
+
+    @app.get("/")
+    async def handler(
+        user_id: str = Needs(get_user_id), role: str = Needs(get_role)
+    ) -> dict[str, str]:
+        return {"user_id": user_id, "role": role}
+
+    async def fake_user_id() -> str:
+        return "fake-id"
+
+    client = app.test_client()
+    app.dependency_overrides[get_user_id] = fake_user_id
+    response = await client.get("/")
+
+    assert response.status_code == 200
+    assert await response.json == {"user_id": "fake-id", "role": "real-role"}

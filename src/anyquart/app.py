@@ -346,6 +346,10 @@ class AnyQuart(App):
         self.cli = AppGroup()
         self.cli.name = self.name
 
+        # overrides route handler's dependencies, useful for tests for replacing
+        # expensive dependency
+        self.dependency_overrides: dict[Callable[..., Any], Callable[..., Any]] = {}
+
         if self.has_static_folder:
             assert bool(static_host) == host_matching, (
                 "Invalid static_host/host_matching combination"

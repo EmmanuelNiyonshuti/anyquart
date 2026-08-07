@@ -37,6 +37,9 @@ e.g:
     @app.route("/users")
     async def get_users(db: DBSession) -> None:
         ...
+
+    # Tests can use `app.dependency_overrides` dictionary to replace route handler's
+    # dependency with test dependency
     ```
 6. Runs on Python 3.10+
 

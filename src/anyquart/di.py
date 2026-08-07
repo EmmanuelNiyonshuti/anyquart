@@ -8,13 +8,12 @@ from collections.abc import AsyncGenerator
 from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Generator
+from dataclasses import dataclass
 from functools import partial
 from typing import Any
 
 from anyio import CancelScope
 from anyio import to_thread
-
-from anyquart.wrappers import request
 
 if typing.TYPE_CHECKING:
     from .app import AnyQuart
@@ -33,8 +32,20 @@ _dependency_map_cache: weakref.WeakKeyDictionary[
 ] = weakref.WeakKeyDictionary()
 
 
+@dataclass(frozen=True)
+class _Needs:
+    """Mark a handler or dependency parameter as a request-scoped dependency.
+
+    Arguments:
+        dependency: The callable that produces the value for the marked
+            parameter.
+    """
+
+    dependency: Callable[..., Any]
+
+
 def Needs(dependency: Callable[..., Any]) -> Any:  # noqa 802
-    return request.Needs(dependency=dependency)
+    return _Needs(dependency=dependency)
 
 
 def build_route_handler_dependency_map(
@@ -79,7 +90,7 @@ def build_route_handler_dependency_map(
             continue
 
         default = parameter.default
-        if isinstance(default, request.Needs):
+        if isinstance(default, _Needs):
             result[name] = default.dependency
             continue
 
@@ -199,7 +210,9 @@ class _Resolver:
         return kw
 
     async def _resolve_dependency(self, dependency: Callable[..., Any]) -> Any:
+        dependency = self._app.dependency_overrides.get(dependency, dependency)
         cached = self._values.get(dependency, _NO_VALUE)
+
         if cached is not _NO_VALUE:
             return cached
 
@@ -226,13 +239,13 @@ class _Resolver:
         self._teardowns.clear()
 
 
-def _marker_from_annotation(annotation: Any) -> request.Needs | None:
+def _marker_from_annotation(annotation: Any) -> _Needs | None:
     if annotation is inspect.Parameter.empty:
         return None
     if typing.get_origin(annotation) is not typing.Annotated:
         return None
     for metadata in typing.get_args(annotation)[1:]:
-        if isinstance(metadata, request.Needs):
+        if isinstance(metadata, _Needs):
             return metadata
     return None
 
