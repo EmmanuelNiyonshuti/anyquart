@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "anyquart"
-version = "0.2.1"
+version = "0.3.0"
 description = "A fork of Quart that uses AnyIO"
 readme = "README.md"
 license = "MIT"
