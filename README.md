@@ -48,7 +48,7 @@ You will have to replace `quart` with `anyquart` and `Quart` with `AnyQuart`.
 
 Install from PyPI using an installer such as pip. Requires Python 3.10+.
 
-```
+```python
 $ pip install anyquart
 ```
 
@@ -75,14 +75,15 @@ async def ws():
 ```
 Install an ASGI web server, pick one from [this list](https://asgi.readthedocs.io/en/latest/implementations.html), or install anyquart with Anycorn directly:
 ```bash
-$ uv add anyquart[anycorn]
+$ pip install anyquart[anycorn]
 ```
 run the application:
 ```bash
 $ anycorn app:app
  * [2026-08-01 11:49:46 +0200] [30809] [INFO] Running on http://127.0.0.1:8000 (CTRL + C to quit)
 ```
-The built-in `anyquart run` command is only available on anyquart <= 0.2.1 — from 0.3.0 onward, run the ASGI server directly as shown above.
+
+**Note**: As of 0.3.0, `anyquart run` requires an ASGI web server to be installed. If no ASGI web server is available, running the application in development mode will raise a `RuntimeError`. Install AnyQuart with Anycorn using the command above, or install another ASGI web server from the list above.
 
 # Testing
 Pytest requires a plugin to run asynchronous test functions and fixtures.

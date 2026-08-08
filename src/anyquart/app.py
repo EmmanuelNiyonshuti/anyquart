@@ -833,10 +833,12 @@ class AnyQuart(App):
         try:
             from anycorn.config import Config as HyperConfig
         except ImportError:
-            raise RuntimeError("""Install ASGI webserver to run in development mode
-                                  e.g: `uv add anyquart[anycorn]
-                                or choose one from this list https://asgi.readthedocs.io/en/latest/implementations.html
-                                """) from None
+            raise RuntimeError(
+                "Running anyquart requires an ASGI web server to be installed\n"
+                "You can install one from this list https://asgi.readthedocs.io/en/latest/implementations.html\n"
+                "e.g:\n"
+                "    $ pip install anycorn\n"
+            ) from None
         if kwargs:
             warnings.warn(
                 f"Additional arguments, {','.join(kwargs.keys())}, are not supported.\n"
