@@ -11,7 +11,6 @@ from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager
 from datetime import timedelta
 from inspect import isasyncgen
-from inspect import iscoroutinefunction
 from inspect import isgenerator
 from types import TracebackType
 from typing import Any
@@ -126,6 +125,13 @@ from .wrappers import BaseRequestWebsocket
 from .wrappers import Request
 from .wrappers import Response
 from .wrappers import Websocket
+
+# inspect.iscoroutinefunction behaves differently on python < 3.13
+# See: https://github.com/python/cpython/issues/94924
+if sys.version_info >= (3, 13):
+    from inspect import iscoroutinefunction
+else:
+    from asyncio import iscoroutinefunction
 
 AppOrBlueprintKey = str | None  # The App key is None, whereas blueprints are named
 T_after_serving = TypeVar("T_after_serving", bound=AfterServingCallable)
