@@ -1,5 +1,39 @@
 from __future__ import annotations
 
+__all__ = (
+    "ASGIVersions",
+    "HTTPScope",
+    "WebSocketScope",
+    "LifespanScope",
+    "WWWScope",
+    "Scope",
+    "HTTPRequestEvent",
+    "HTTPResponseStartEvent",
+    "HTTPResponseBodyEvent",
+    "HTTPResponseTrailersEvent",
+    "HTTPResponsePathsendEvent",
+    "HTTPServerPushEvent",
+    "HTTPDisconnectEvent",
+    "WebSocketConnectEvent",
+    "WebSocketAcceptEvent",
+    "WebSocketReceiveEvent",
+    "WebSocketSendEvent",
+    "WebSocketResponseStartEvent",
+    "WebSocketResponseBodyEvent",
+    "WebSocketDisconnectEvent",
+    "WebSocketCloseEvent",
+    "LifespanStartupEvent",
+    "LifespanShutdownEvent",
+    "LifespanStartupCompleteEvent",
+    "LifespanStartupFailedEvent",
+    "LifespanShutdownCompleteEvent",
+    "LifespanShutdownFailedEvent",
+    "ASGIReceiveEvent",
+    "ASGISendEvent",
+    "ASGIReceiveCallable",
+    "ASGISendCallable",
+)
+
 import os
 import sys
 from collections.abc import AsyncGenerator
@@ -39,39 +73,6 @@ if TYPE_CHECKING:
     from .sessions import SessionMixin
     from .wrappers.response import Response
 
-__all__ = (
-    "ASGIVersions",
-    "HTTPScope",
-    "WebSocketScope",
-    "LifespanScope",
-    "WWWScope",
-    "Scope",
-    "HTTPRequestEvent",
-    "HTTPResponseStartEvent",
-    "HTTPResponseBodyEvent",
-    "HTTPResponseTrailersEvent",
-    "HTTPResponsePathsendEvent",
-    "HTTPServerPushEvent",
-    "HTTPDisconnectEvent",
-    "WebSocketConnectEvent",
-    "WebSocketAcceptEvent",
-    "WebSocketReceiveEvent",
-    "WebSocketSendEvent",
-    "WebSocketResponseStartEvent",
-    "WebSocketResponseBodyEvent",
-    "WebSocketDisconnectEvent",
-    "WebSocketCloseEvent",
-    "LifespanStartupEvent",
-    "LifespanShutdownEvent",
-    "LifespanStartupCompleteEvent",
-    "LifespanStartupFailedEvent",
-    "LifespanShutdownCompleteEvent",
-    "LifespanShutdownFailedEvent",
-    "ASGIReceiveEvent",
-    "ASGISendEvent",
-    "ASGIReceiveCallable",
-    "ASGISendCallable",
-)
 
 FilePath = Union[bytes, str, os.PathLike]
 
