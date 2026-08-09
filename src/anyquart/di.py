@@ -34,25 +34,23 @@ _dependency_map_cache: weakref.WeakKeyDictionary[
 
 @dataclass(frozen=True)
 class _Needs:
+    dependency: Callable[..., Any]
+
+
+def Needs(dependency: Callable[..., Any]) -> Any:  # noqa 802
     """Mark a handler or dependency parameter as a request-scoped dependency.
 
     Arguments:
         dependency: The callable that produces the value for the marked
             parameter.
     """
-
-    dependency: Callable[..., Any]
-
-
-def Needs(dependency: Callable[..., Any]) -> Any:  # noqa 802
     return _Needs(dependency=dependency)
 
 
 def build_route_handler_dependency_map(
     func: Callable[..., Any],
 ) -> dict[str, Callable[..., Any]]:
-    """
-    Build route handler dependency map(a dictionary)
+    """Build route handler dependency map(a dictionary)
         i.e:``{parameter_name: dependency_func}``
 
     Any handler or dependency parameter whose default value is a
@@ -106,8 +104,7 @@ def build_route_handler_dependency_map(
 
 
 def rule_arguments(rule: str) -> set[str]:
-    """
-    Get a set of url converter variables
+    """Get a set of url converter variables
     present in a url path(a Url Rule in flask lingo).
     Arguments:
         rule: a url path
@@ -120,8 +117,7 @@ def rule_arguments(rule: str) -> set[str]:
 def check_name_conflicts(
     view_func: Callable[..., Any], rule: str, defaults: dict[str, Any] | None = None
 ) -> None:
-    """
-    A handler parameter cannot be both a ``Needs`` dependency injected value
+    """A handler parameter cannot be both a ``Needs`` dependency injected value
     and a URL rule converter (or a rule ``default``) on the same route.
     e.g:
         ```
@@ -155,8 +151,7 @@ def check_name_conflicts(
 async def invoke_with_di(
     app: AnyQuart, func: Callable[..., Any], view_args: dict[str, Any] | None
 ) -> Any:
-    """
-    Invoke the ``func`` resolving any of its dependency injected parameters.
+    """Invoke the ``func`` resolving any of its dependency injected parameters.
 
     When ``func`` declares no dependencies this is exactly equivalent to
     ``await app.ensure_async(func)(**view_args)`` so non-injected routes carry
@@ -174,8 +169,7 @@ async def invoke_with_di(
 
 
 class _Resolver:
-    """
-    Resolves a dependency tree for a single request.
+    """Resolves a dependency tree for a single request.
 
     A resolver instance is created per request and holds that request's cache
     of resolved values plus its generator teardowns, guaranteeing that two
