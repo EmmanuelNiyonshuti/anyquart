@@ -837,7 +837,7 @@ class AnyQuart(App):
             keyfile: Path to the SSL key file.
         """
         try:
-            from anycorn.config import Config as HyperConfig
+            from anycorn.config import Config as HyperConfig  # type: ignore
         except ImportError:
             raise RuntimeError(
                 "Running anyquart requires an ASGI web server to be installed\n"
@@ -889,7 +889,7 @@ class AnyQuart(App):
 
         if use_reloader:
             # run directly with anycorn when in reload mode.
-            from anycorn.run import run as anycorn_run
+            from anycorn.run import run as anycorn_run  # type: ignore
 
             config.use_reloader = True
             config.application_path = app_import_path
@@ -898,7 +898,7 @@ class AnyQuart(App):
             anyio.run(self._run_serve, config)
 
     async def _run_serve(self, config) -> None:  # type: ignore
-        from anycorn import serve
+        from anycorn import serve  # type: ignore
 
         shutdown_event = Event()
 
@@ -911,7 +911,7 @@ class AnyQuart(App):
         async with create_task_group() as tg:
             tg.start_soon(watch_signals)
             await serve(
-                self,  # type: ignore[arg-type]
+                self,
                 config,
                 shutdown_trigger=shutdown_event.wait,
             )
