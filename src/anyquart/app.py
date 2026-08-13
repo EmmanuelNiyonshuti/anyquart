@@ -911,7 +911,7 @@ class AnyQuart(App):
         async with create_task_group() as tg:
             tg.start_soon(watch_signals)
             await serve(
-                self,
+                self,  # type: ignore[arg-type]
                 config,
                 shutdown_trigger=shutdown_event.wait,
             )
