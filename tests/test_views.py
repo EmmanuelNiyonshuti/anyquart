@@ -3,19 +3,11 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-import pytest
-
 from anyquart import AnyQuart
 from anyquart import request
 from anyquart import ResponseReturnValue
 from anyquart.views import MethodView
 from anyquart.views import View
-
-
-@pytest.fixture
-def app() -> AnyQuart:
-    app = AnyQuart(__name__)
-    return app
 
 
 async def test_view(app: AnyQuart) -> None:
