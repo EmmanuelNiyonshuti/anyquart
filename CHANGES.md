@@ -9,7 +9,7 @@ Unreleased
 
 Released 2026-08-07
 
-- Added :class:`~anyquart.di.Needs` a FastAPI-``Depends``-style dependency
+- Added `anyquart.di.Needs` a FastAPI-``Depends``-style dependency
   injection system for view functions.
 - Removed anycorn as a required dependency and made it optional dependency:
   - Added asgiref types replacing asgi types that was imported from anycorn.
