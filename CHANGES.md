@@ -1,3 +1,10 @@
+## Version 0.3.1
+
+Unreleased
+
+- Added support for free-threaded Python 3.14(3.14t)(#34).
+
+
 ## AnyQuart 0.3.0
 
 Released 2026-08-07
