@@ -6,8 +6,9 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "anyquart>=0.1.1",
-    "pydantic>=2.13.4",
+    "anycorn>=0.11.2",
     "pytest>=9.1.1",
+    "anyquart_pydantic>=0.2.0"
 ]
 
 [tool.pytest.ini_options]

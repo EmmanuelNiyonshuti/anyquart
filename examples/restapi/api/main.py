@@ -3,21 +3,22 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
+from anyquart_pydantic import AnyQuartPydantic
 from pydantic import BaseModel
 
 from anyquart import AnyQuart
-from anyquart import jsonify
 from anyquart import request
 
 app = AnyQuart(__name__)
+AnyQuartPydantic(app)
 
 
-class TodoIn(BaseModel):
+class Todo(BaseModel):
     task: str
     due: datetime | None = None
 
 
-class Todo(TodoIn):
+class TodoOut(Todo):
     id: int
 
 
@@ -28,11 +29,10 @@ async def echo() -> dict[str, Any]:
 
 
 @app.post("/todos/")
-async def create_todo():
-    data = await request.get_json()
-    todo_in = TodoIn(**data)
-    todo = Todo(id=1, task=todo_in.task, due=todo_in.due)
-    return jsonify(todo.model_dump()), 201
+async def create_todo(todo: Todo) -> TodoOut:
+    new_todo = TodoOut(task=todo.task, due=todo.due, id=1)
+
+    return new_todo, 201
 
 
 def run() -> None:
