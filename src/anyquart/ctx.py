@@ -27,7 +27,10 @@ from .wrappers import Websocket
 if TYPE_CHECKING:
     from .app import AnyQuart  # noqa
 
-_sentinel = object()
+if sys.version_info < (3, 15):
+    from typing_extensions import sentinel
+
+_sentinel = sentinel("_sentinel")
 
 
 class _BaseRequestWebsocketContext:
@@ -153,7 +156,7 @@ class RequestContext(_BaseRequestWebsocketContext):
         await super()._push_appctx(_cv_request.set(self))
         await super()._push()
 
-    async def pop(self, exc: BaseException | None = _sentinel) -> None:  # type: ignore
+    async def pop(self, exc: BaseException | _sentinel = _sentinel) -> None:
         try:
             if len(self._cv_tokens) == 1:
                 if exc is _sentinel:
@@ -210,7 +213,7 @@ class WebsocketContext(_BaseRequestWebsocketContext):
         await super()._push_appctx(_cv_websocket.set(self))
         await super()._push()
 
-    async def pop(self, exc: BaseException | None = _sentinel) -> None:  # type: ignore
+    async def pop(self, exc: BaseException | _sentinel = _sentinel) -> None:
         try:
             if len(self._cv_tokens) == 1:
                 if exc is _sentinel:
@@ -265,7 +268,7 @@ class AppContext:
             _sync_wrapper=self.app.ensure_async,  # type: ignore[arg-type]
         )
 
-    async def pop(self, exc: BaseException | None = _sentinel) -> None:  # type: ignore
+    async def pop(self, exc: BaseException | _sentinel = _sentinel) -> None:
         try:
             if len(self._cv_tokens) == 1:
                 if exc is _sentinel:

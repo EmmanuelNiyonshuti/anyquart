@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import re
+import sys
 import typing
 import weakref
 from collections.abc import AsyncGenerator
@@ -18,6 +19,8 @@ from anyio import to_thread
 if typing.TYPE_CHECKING:
     from .app import AnyQuart
 
+if sys.version_info < (3, 15):
+    from typing_extensions import sentinel
 
 # Matches the converter portions of a URL rule so that we can extract the
 # variable names (e.g. ``<int:user_id>`` yields ``user_id``).
@@ -25,7 +28,7 @@ _rule_variable_re = re.compile(
     r"<(?:(?P<converter>[a-zA-Z_][a-zA-Z0-9_]*)(?:\([^>]*\))?:)?"
     r"(?P<variable>[a-zA-Z_][a-zA-Z0-9_]*)>"
 )
-_NO_VALUE = object()
+_NO_VALUE = sentinel("_NO_VALUE")
 
 _dependency_map_cache: weakref.WeakKeyDictionary[
     Callable[..., Any], dict[str, Callable[..., Any]]
