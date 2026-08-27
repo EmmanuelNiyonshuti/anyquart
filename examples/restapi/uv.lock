@@ -76,7 +76,7 @@ requires-dist = [
     { name = "jinja2" },
     { name = "markupsafe" },
     { name = "python-dotenv", marker = "extra == 'dotenv'" },
-    { name = "typing-extensions", marker = "python_full_version < '3.15'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.15'", specifier = ">=4.16.0" },
     { name = "werkzeug", specifier = ">=3.0" },
 ]
 provides-extras = ["dotenv", "anycorn"]
