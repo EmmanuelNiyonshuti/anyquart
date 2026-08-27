@@ -42,7 +42,7 @@ dependencies = [
     "itsdangerous",
     "jinja2",
     "markupsafe",
-    "typing-extensions; python_version < '3.15'",
+    "typing-extensions >= 4.16.0; python_version < '3.15'",
     "werkzeug>=3.0",
 ]
 
