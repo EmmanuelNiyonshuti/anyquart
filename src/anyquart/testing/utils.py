@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from typing import Any
 from typing import AnyStr
 from typing import cast
@@ -30,7 +31,10 @@ from ..utils import encode_headers
 if TYPE_CHECKING:
     from ..app import AnyQuart  # noqa
 
-sentinel = object()
+if sys.version_info < (3, 15):
+    from typing_extensions import sentinel
+
+sentinel = sentinel("sentinel")
 
 
 def make_test_headers_path_and_query_string(
