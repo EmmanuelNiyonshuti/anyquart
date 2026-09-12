@@ -23,20 +23,23 @@ e.g:
     ```python
     from anyquart import Needs
 
+
     async def get_db() -> AsyncGenerator[AsyncSession, None]:
         async with async_session() as session:
             yield session
 
+
     @app.route("/users")
-    async def get_users(db: AsyncSession = Needs(get_db)) -> None:
-        ...
+    async def get_users(db: AsyncSession = Needs(get_db)) -> None: ...
+
 
     # Or:
     DBSession = Annotated[AsyncSession, Needs(get_db)]
 
+
     @app.route("/users")
-    async def get_users(db: DBSession) -> None:
-        ...
+    async def get_users(db: DBSession) -> None: ...
+
 
     # Tests can use `app.dependency_overrides` dictionary to replace route handler's
     # dependency with test dependency
@@ -59,13 +62,16 @@ from anyquart import AnyQuart, websocket, render_template
 
 app = AnyQuart(__name__)
 
+
 @app.route("/")
 async def hello():
     return await render_template("index.html")
 
+
 @app.route("/api")
 async def json():
     return {"hello": "world"}
+
 
 @app.websocket("/ws")
 async def ws():
@@ -94,20 +100,22 @@ import pytest
 
 from app import app
 
+
 @pytest.fixture()
 def anyio_backend():
-    return "trio" # you can replace with "asyncio"
+    return "trio"  # you can replace with "asyncio"
+
 
 @pytest.fixture()
 def test_client():
     return app.test_client()
+
 
 @pytest.mark.anyio
 async def test_do_something(test_client) -> None:
     response = await test_client.get("/")
     assert response.status_code == 200
     assert await response.json == {"hello": "world"}
-
 ```
 
 Refer to the [Quart documentation](https://quart.palletsprojects.com) for more details.
