@@ -32,9 +32,9 @@ if TYPE_CHECKING:
     from ..app import AnyQuart  # noqa
 
 if sys.version_info < (3, 15):
-    from typing_extensions import sentinel
+    from typing_extensions import sentinel as sentinel
 
-sentinel = sentinel("sentinel")
+_sentinel = sentinel("_sentinel")
 
 
 def make_test_headers_path_and_query_string(
@@ -88,7 +88,7 @@ def make_test_body_with_headers(
     data: AnyStr | None = None,
     form: dict | None = None,
     files: dict[str, FileStorage] | None = None,
-    json: Any = sentinel,
+    json: Any = _sentinel,
     app: AnyQuart | None = None,
 ) -> tuple[bytes, Headers]:
     """Make the body bytes with associated headers.
@@ -102,11 +102,11 @@ def make_test_body_with_headers(
         json: Data to send json encoded in the request body.
 
     """
-    if [json is not sentinel, form is not None, data is not None].count(True) > 1:
+    if [json is not _sentinel, form is not None, data is not None].count(True) > 1:
         raise ValueError(
             "anyquart test args 'json', 'form', and 'data' are mutually exclusive"
         )
-    if [json is not sentinel, files is not None, data is not None].count(True) > 1:
+    if [json is not _sentinel, files is not None, data is not None].count(True) > 1:
         raise ValueError(
             "anyquart test args 'files', 'json', and 'data' are mutually exclusive"
         )

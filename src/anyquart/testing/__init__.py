@@ -7,7 +7,6 @@ __all__ = (
     "no_op_push",
     "AnyQuartClient",
     "AnyQuartCliRunner",
-    "sentinel",
     "TestApp",
     "WebsocketResponseError",
 )
@@ -25,7 +24,6 @@ from .utils import make_test_body_with_headers
 from .utils import make_test_headers_path_and_query_string
 from .utils import make_test_scope
 from .utils import no_op_push
-from .utils import sentinel
 
 if TYPE_CHECKING:
     from ..app import AnyQuart
