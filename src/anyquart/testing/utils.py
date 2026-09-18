@@ -35,6 +35,7 @@ if sys.version_info < (3, 15):
     from typing_extensions import sentinel as sentinel
 
 _sentinel = sentinel("_sentinel")
+sentinel = _sentinel
 
 
 def make_test_headers_path_and_query_string(
@@ -120,7 +121,7 @@ def make_test_body_with_headers(
     elif isinstance(data, bytes):
         request_data = data
 
-    if json is not sentinel:
+    if json is not _sentinel:
         request_data = dumps(json).encode("utf-8")
         headers["Content-Type"] = "application/json"
     elif files is not None:

@@ -96,8 +96,8 @@ from .testing import make_test_body_with_headers
 from .testing import make_test_headers_path_and_query_string
 from .testing import make_test_scope
 from .testing import no_op_push
-from .testing import sentinel
 from .testing import TestApp
+from .testing.utils import sentinel
 from .typing import AfterServingCallable
 from .typing import AfterWebsocketCallable
 from .typing import ASGIHTTPProtocol
