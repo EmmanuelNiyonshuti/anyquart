@@ -35,6 +35,7 @@ if sys.version_info < (3, 15):
     from typing_extensions import sentinel as sentinel
 
 _sentinel = sentinel("_sentinel")
+sentinel = _sentinel
 
 
 def make_test_headers_path_and_query_string(
