@@ -105,7 +105,7 @@ class IterableBody(ResponseBody):
         if isinstance(iterable, Iterable):
             self.iter = run_sync_iterable(iter(iterable))
         else:
-            self.iter = iterable.__aiter__()  # Can't use aiter() until 3.10
+            self.iter = aiter(iterable)
 
     async def __aenter__(self) -> IterableBody:
         return self

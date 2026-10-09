@@ -44,12 +44,12 @@ e.g:
     # Tests can use `app.dependency_overrides` dictionary to replace route handler's
     # dependency with test dependency
     ```
-6. Runs on Python 3.10+
+6. Runs on Python 3.11+
 
 ## Usage
 You will have to replace `quart` with `anyquart` and `Quart` with `AnyQuart`.
 
-Install from PyPI using an installer such as pip. Requires Python 3.10+.
+Install from PyPI using an installer such as pip. Requires Python 3.11+.
 
 ```python
 $ pip install anyquart
