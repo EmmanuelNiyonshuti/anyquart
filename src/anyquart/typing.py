@@ -35,7 +35,6 @@ __all__ = (
 )
 
 import os
-import sys
 from collections.abc import AsyncGenerator
 from collections.abc import Awaitable
 from collections.abc import Callable
@@ -51,6 +50,7 @@ from types import TracebackType
 from typing import Any
 from typing import AnyStr
 from typing import Literal
+from typing import NotRequired
 from typing import Optional
 from typing import Protocol
 from typing import TYPE_CHECKING
@@ -58,11 +58,6 @@ from typing import TypedDict
 from typing import Union
 
 from .datastructures import FileStorage
-
-if sys.version_info >= (3, 11):
-    from typing import NotRequired
-else:
-    from typing_extensions import NotRequired
 
 if TYPE_CHECKING:
     from werkzeug.datastructures import Authorization  # noqa: F401
