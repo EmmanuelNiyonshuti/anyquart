@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 from collections.abc import Generator
 from datetime import datetime
-from datetime import timezone
+from datetime import UTC
 from http import HTTPStatus
 from io import BytesIO
 from pathlib import Path
@@ -209,7 +209,7 @@ async def test_empty_response() -> None:
 
 @given(
     value=strategies.datetimes(
-        timezones=strategies.just(timezone.utc),
+        timezones=strategies.just(UTC),
         # The min_value and max_value are needed because
         # wsgiref uses the function time.gmtime on the generated timestamps,
         # which fails on windows with values outside of these bounds
