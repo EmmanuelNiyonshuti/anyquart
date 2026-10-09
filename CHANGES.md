@@ -2,7 +2,7 @@
 
 Unreleased
 
-- Drop support for python 3.10
+- Drop support for python 3.10(#47)
 - Added support for free-threaded Python 3.14(3.14t)(#34).
 
 
