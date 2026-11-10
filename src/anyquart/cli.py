@@ -265,7 +265,7 @@ class ScriptInfo:
         if not app:
             raise NoAppException(
                 "Could not locate a AnyQuart application. Use the"
-                " 'AnyQuart --app' option, 'AnyQuart_APP' environment"
+                " 'AnyQuart --app' option, 'ANYQUART_APP' environment"
                 " variable, or an 'app.py' file in the"
                 " current directory."
             )
@@ -374,7 +374,7 @@ def _set_app(ctx: click.Context, param: click.Option, value: str | None) -> str 
 # This option is eager so the app will be available if --help is given.
 # --help is also eager, so --app must be before it in the param list.
 # no_args_is_help bypasses eager processing, so this option must be
-# processed manually in that case to ensure AnyQuart_APP gets picked up.
+# processed manually in that case to ensure ANYQUART_APP gets picked up.
 _app_option = click.Option(
     ["-A", "--app"],
     metavar="IMPORT",
@@ -474,7 +474,7 @@ class AnyQuartGroup(AppGroup):
         if "context_settings" not in extra:
             extra["context_settings"] = {}
 
-        extra["context_settings"].setdefault("auto_envvar_prefix", "Quart")
+        extra["context_settings"].setdefault("auto_envvar_prefix", "anyquart")
 
         super().__init__(params=params, **extra)
 
@@ -558,12 +558,8 @@ class AnyQuartGroup(AppGroup):
         return super().make_context(info_name, args, parent=parent, **extra)
 
     def parse_args(self, ctx: click.Context, args: list[str]) -> list[str]:
-        if not args and self.no_args_is_help:
-            # Attempt to load --env-file and --app early in case they
-            # were given as env vars. Otherwise no_args_is_help will not
-            # see commands from app.cli.
-            _env_file_option.handle_parse_result(ctx, {}, [])
-            _app_option.handle_parse_result(ctx, {}, [])
+        _env_file_option.handle_parse_result(ctx, {}, [])
+        _app_option.handle_parse_result(ctx, {}, [])
 
         return super().parse_args(ctx, args)
 
@@ -776,7 +772,7 @@ cli = AnyQuartGroup(
     help="""\
 A general utility script for AnyQuart applications.
 An application to load must be given with the '--app' option,
-'AnyQuart_APP' environment variable, or with an 'app.py' file
+'ANYQUART_APP' environment variable, or with an 'app.py' file
 in the current directory.
 """,
 )

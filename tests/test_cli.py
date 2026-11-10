@@ -147,3 +147,24 @@ def test_load_dotenv_beats_dotanyquartenv(empty_cwd: Path) -> None:
     load_dotenv()
 
     assert os.environ.pop("TEST_ENV_VAR", None) == env_value
+
+
+def test_help_list_commands_with_app_envvar(tmp_path: Path) -> None:
+    """
+    See: https://github.com/pallets/quart/issues/483
+    """
+    app_path = tmp_path / "run.py"
+    app_path.write_text(
+        "from anyquart import AnyQuart\n"
+        "app = AnyQuart(__name__)\n"
+        "\n"
+        "@app.cli.command('hello')\n"
+        "def hello():\n"
+        "    pass\n"
+    )
+    runner = CliRunner()
+    result = runner.invoke(cli, args=["--help"], env={"ANYQUART_APP": str(app_path)})
+
+    assert (
+        "Error: While importing 'app', an ImportError was raised:" not in result.output
+    )
