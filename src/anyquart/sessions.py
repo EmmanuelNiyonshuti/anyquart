@@ -7,9 +7,7 @@ from typing import TYPE_CHECKING
 
 from flask.sessions import NullSession as NullSession  # noqa: F401
 from flask.sessions import SecureCookieSession as SecureCookieSession  # noqa: F401
-from flask.sessions import (  # noqa: F401
-    session_json_serializer as session_json_serializer,
-)
+from flask.sessions import session_json_serializer as session_json_serializer  # noqa: F401
 from flask.sessions import SessionMixin as SessionMixin  # noqa: F401
 from itsdangerous import BadSignature
 from itsdangerous import URLSafeTimedSerializer
