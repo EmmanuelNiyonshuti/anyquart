@@ -4,9 +4,7 @@ from collections.abc import AsyncIterator
 from typing import Any
 from typing import TYPE_CHECKING
 
-from flask.templating import (
-    DispatchingJinjaLoader as DispatchingJinjaLoader,  # noqa: F401
-)
+from flask.templating import DispatchingJinjaLoader as DispatchingJinjaLoader  # noqa: F401
 from jinja2 import Environment as BaseEnvironment
 from jinja2 import Template
 
