@@ -15,6 +15,7 @@ from importlib.metadata import entry_points
 from operator import attrgetter
 from types import ModuleType
 from typing import Any
+from typing import overload
 from typing import TYPE_CHECKING
 
 import anyio
@@ -38,7 +39,7 @@ class NoAppException(click.UsageError):
     pass
 
 
-def _called_with_wrong_args(f: Callable) -> bool:
+def _called_with_wrong_args(f: Callable[..., Any]) -> bool:
     """Check whether calling a function raised a ``TypeError`` because
     the call failed or because something in the factory raised the
     error.
@@ -317,21 +318,41 @@ class AppGroup(click.Group):
     Not to be confused with :class:`AnyQuartGroup`.
     """
 
-    def command(self, *args: Any, **kwargs: Any) -> Callable:  # type: ignore
+    @overload
+    def command(self, __func: Callable[..., Any]) -> click.Command: ...
+
+    @overload
+    def command(
+        self, *args: Any, **kwargs: Any
+    ) -> Callable[[Callable[..., Any]], click.Command]: ...
+
+    def command(
+        self, *args: Any, **kwargs: Any
+    ) -> Callable[[Callable[..., Any]], click.Command]:
         """This works exactly like the method of the same name on a regular
         :class:`click.Group` but it wraps callbacks in :func:`with_appcontext`
         if it's enabled by passing ``with_appcontext=True``.
         """
         wrap_for_ctx = kwargs.pop("with_appcontext", False)
 
-        def decorator(f: Callable) -> Callable:
+        def decorator(f: Callable[..., Any]) -> click.Command:
             if wrap_for_ctx:
                 f = with_appcontext(f)
             return click.Group.command(self, *args, **kwargs)(f)
 
         return decorator
 
-    def group(self, *args: Any, **kwargs: Any) -> Callable:  # type: ignore
+    @overload
+    def group(self, __func: Callable[..., Any]) -> click.Group: ...
+
+    @overload
+    def group(
+        self, *args: Any, **kwargs: Any
+    ) -> Callable[[Callable[..., Any]], click.Group]: ...
+
+    def group(
+        self, *args: Any, **kwargs: Any
+    ) -> Callable[[Callable[..., Any]], click.Group] | click.Group:
         kwargs.setdefault("cls", AppGroup)
         return super().group(*args, **kwargs)
 
@@ -461,7 +482,7 @@ class AnyQuartGroup(AppGroup):
         set_debug_flag: bool = True,
         **extra: Any,
     ) -> None:
-        params = list(extra.pop("params", None) or ())
+        params: list[click.Parameter] = list(extra.pop("params", None) or ())
         # Processing is done with option callbacks instead of a group
         # callback. This allows users to make a custom group callback
         # without losing the behavior. --env-file must come first so
