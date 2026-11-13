@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11"
 
 [[package]]
@@ -72,7 +72,7 @@ dev = [
     { name = "ruff" },
     { name = "tox" },
     { name = "tox-uv" },
-    { name = "trio", specifier = "==0.34.0" },
+    { name = "trio", specifier = "==0.35.0" },
 ]
 gha-update = [{ name = "gha-update", marker = "python_full_version >= '3.12'" }]
 pre-commit = [
