@@ -1,6 +1,7 @@
-## Version 0.3.1
+## AnyQuart 0.3.1
 
-Unreleased
+Released 2026-11-14
+
 - Fix `--help` flag raising ModuleNotFoundError when used with `ANYQUART_APP`(
   [#483](https://github.com/pallets/quart/issues/483))
 - Removed support for python 3.10(#47)
